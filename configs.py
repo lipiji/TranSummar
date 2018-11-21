@@ -50,9 +50,13 @@ class DeepmindConfigs():
         NORM_CLIP = 5
     LR = 0.15 
 
-    DIM_X = 128
+    DIM_X = 256
     DIM_Y = DIM_X
-
+    HIDDEN_SIZE = 256
+    FF_SIZE = 512
+    NUM_H = 8 # multi-head attention
+    DROPOUT = 0.1
+    NUM_L = 6 # num of layers
     MIN_LEN_X = 10
     MIN_LEN_Y = 10
     MAX_LEN_X = 400
@@ -62,7 +66,6 @@ class DeepmindConfigs():
     MAX_NUM_Y = None
 
     NUM_Y = 1
-    HIDDEN_SIZE = 256
 
     UNI_LOW_FREQ_THRESHOLD = 10
 

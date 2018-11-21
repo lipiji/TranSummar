@@ -54,7 +54,7 @@ def init_modules():
 
     options = {}
 
-    options["is_debugging"] = False
+    options["is_debugging"] = True
     options["is_predicting"] = False
     options["model_selection"] = False # When options["is_predicting"] = True, true means use validation set for tuning, false is real testing.
 
@@ -92,6 +92,11 @@ def init_modules():
     consts["num_x"] = cfg.MAX_NUM_X
     consts["num_y"] = cfg.NUM_Y
     consts["hidden_size"] = cfg.HIDDEN_SIZE
+    consts["d_ff"] = cfg.FF_SIZE
+    consts["num_heads"] = cfg.NUM_H
+    consts["dropout"] = cfg.DROPOUT
+    consts["num_layers"] = cfg.NUM_L
+    consts["word_pos_size"] = consts["len_x"] + 1 # padding:0
 
     consts["batch_size"] = 5 if options["is_debugging"] else TRAINING_DATASET_CLS.BATCH_SIZE
     if options["is_debugging"]:
@@ -531,6 +536,9 @@ def run(existing_model_name = None):
             model, optimizer = load_model(cfg.cc.MODEL_PATH + existing_model_name, model, optimizer)
 
         if training_model:
+            
+            model.train() # !!!!!!!
+
             print "start training model "
             print_size = num_files / consts["print_time"] if num_files >= consts["print_time"] else num_files
 
@@ -554,17 +562,15 @@ def run(existing_model_name = None):
                         continue
                     local_batch_size = len(batch_raw)
                     batch = datar.get_data(batch_raw, modules, consts, options)
-                  
-                    x, len_x, x_mask, y, len_y, y_mask, oy, x_ext, y_ext, oovs = sort_samples(batch.x, batch.len_x, \
-                                                             batch.x_mask, batch.y, batch.len_y, batch.y_mask, \
-                                                             batch.original_summarys, batch.x_ext, batch.y_ext, batch.x_ext_words)
                     
                     model.zero_grad()
-                    y_pred, cost, cost_c = model(torch.LongTensor(x).to(options["device"]), torch.LongTensor(len_x).to(options["device"]),\
-                                   torch.LongTensor(y).to(options["device"]),  torch.FloatTensor(x_mask).to(options["device"]), \
-                                   torch.FloatTensor(y_mask).to(options["device"]), torch.LongTensor(x_ext).to(options["device"]),\
-                                   torch.LongTensor(y_ext).to(options["device"]), \
-                                   batch.max_ext_len)
+                    
+                    h = model(torch.LongTensor(batch.x).to(options["device"]),\
+                              torch.LongTensor(batch.p_x).to(options["device"]),\
+                              torch.FloatTensor(batch.x_mask).to(options["device"]))
+
+                    print h.shape
+
                     if cost_c is None:
                         loss = cost
                     else:
@@ -614,6 +620,7 @@ def run(existing_model_name = None):
             print "skip training model"
 
         if predict_model:
+            model.eval()
             predict(model, modules, consts, options)
     print "Finished, time:", time.time() - running_start
 

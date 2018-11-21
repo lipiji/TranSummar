@@ -14,8 +14,10 @@ class BatchData:
         self.batch_size = len(flist) 
         self.x = np.zeros((consts["len_x"], self.batch_size), dtype = np.int64)
         self.x_ext = np.zeros((consts["len_x"], self.batch_size), dtype = np.int64)
+        self.p_x = np.zeros((consts["len_x"], self.batch_size), dtype = np.int64)
         self.y = np.zeros((consts["len_y"], self.batch_size), dtype = np.int64)
         self.y_ext = np.zeros((consts["len_y"], self.batch_size), dtype = np.int64)
+        self.p_y = np.zeros((consts["len_y"], self.batch_size), dtype = np.int64)
         self.x_mask = np.zeros((consts["len_x"], self.batch_size, 1), dtype = np.int64)
         self.y_mask = np.zeros((consts["len_y"], self.batch_size, 1), dtype = np.int64)
         self.len_x = []
@@ -57,6 +59,8 @@ class BatchData:
                     
                     self.x[idx_word, idx_doc] = w2i[w]
                     self.x_mask[idx_word, idx_doc, 0] = 1
+                    self.p_x[idx_word, idx_doc] = idx_word + 1
+
             self.len_x.append(np.sum(self.x_mask[:, idx_doc, :]))
             self.x_ext_words.append(xi_oovs)
             if self.max_ext_len < len(xi_oovs):
@@ -75,6 +79,7 @@ class BatchData:
                     else:
                         self.y_ext[idx_word, idx_doc] =  w2i[w]
                     self.y[idx_word, idx_doc] = w2i[w]
+                    self.p_y[idx_word, idx_doc] = idx_word + 1
                     if not options["is_predicting"]:
                         self.y_mask[idx_word, idx_doc, 0] = 1
                 self.len_y.append(len(summary))
