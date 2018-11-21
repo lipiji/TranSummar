@@ -109,9 +109,10 @@ class DecoderLayer(nn.Module):
 class Embeddings(nn.Module):
     def __init__(self, vocab, d_model, padding_idx=0):
         super(Embeddings, self).__init__()
+        self.d_model = d_model
         self.lut = nn.Embedding(vocab, d_model, padding_idx)
     def forward(self, x):
-        return self.lut(x) #* math.sqrt(self.d_model)
+        return self.lut(x) * math.sqrt(self.d_model)
 
 class PositionEmbeddings(nn.Module):
     def __init__(self, d_word_vec, max_len=5000):
