@@ -567,7 +567,8 @@ def run(existing_model_name = None):
                     
                     h = model(torch.LongTensor(batch.x).to(options["device"]),\
                               torch.LongTensor(batch.p_x).to(options["device"]),\
-                              torch.FloatTensor(batch.x_mask).to(options["device"]))
+                              torch.FloatTensor(batch.x_mask).to(options["device"]),\
+                              torch.FloatTensor(batch.y_mask).to(options["device"]))
 
                     print h.shape
 

@@ -10,6 +10,7 @@ import copy
 
 from utils_pg import *
 from encoder import *
+from decoder import *
 
 from transformer.layers import Embeddings, PositionEmbeddings
 
@@ -39,19 +40,27 @@ class Model(nn.Module):
         self.word_pos_size = consts["word_pos_size"]
         #self.sent_pos_size = consts["sent_pos_size"]
 
-
         self.word_emb = Embeddings(self.dict_size, self.dim_x, self.pad_token_idx)
         self.pos_emb = PositionEmbeddings(self.dim_x, self.word_pos_size)
 
         self.encoder = LocalEncoder(self.word_emb, self.pos_emb,\
                                     self.d_model, self.d_ff, self.num_heads,\
                                     self.dropout, self.num_layers)
-        #self.decoder = ()
+        self.decoder = LocalDecoder(self.word_emb, self.pos_emb,\
+                                    self.d_model, self.d_ff, self.num_heads,\
+                                    self.dropout, self.num_layers)
 
         self.init_weights()
 
     def init_weights(self):
+        for p in self.word_emb.parameters():
+            nn.init.xavier_uniform_(p)
+            
         for p in self.encoder.parameters():
+            if p.dim() > 1:
+                nn.init.xavier_uniform_(p)
+        
+        for p in self.decoder.parameters():
             if p.dim() > 1:
                 nn.init.xavier_uniform_(p)
 
@@ -68,6 +77,9 @@ class Model(nn.Module):
 
     def encode(self, x, p, mask_x):
         return self.encoder(x, p, mask_x)
+
+    def decode(self, x, p, m, mask_x, mask_y):
+        return self.decoder(x, p, m, mask_x, mask_y)
 
     def decode_once(self, y, hs, dec_init_state, mask_x, x=None, max_ext_len=None, acc_att=None):
         batch_size = hs.size(1)
@@ -96,8 +108,10 @@ class Model(nn.Module):
         else:
             return y_pred, hcs
 
-    def forward(self, x, p, mask_x):
+    def forward(self, x, p, mask_x, mask_y):
         hs = self.encode(x, p, mask_x)
-        return hs
+        print hs.shape
+        out = self.decode(x, p, hs, mask_x, mask_y)
+        return out
     
 

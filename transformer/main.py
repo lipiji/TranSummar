@@ -64,29 +64,30 @@ class Batch:
     "Object for holding a batch of data with mask during training."
     def __init__(self, src, trg=None, pad=0):
         self.src = src
-        self.src_mask = (src != pad).unsqueeze(-2)
+        self.src_mask = (src != pad).unsqueeze(-1)
         if trg is not None:
-            self.trg = trg[:, :-1]
-            self.trg_y = trg[:, 1:]
+            self.trg = trg[:-1, :]
+            self.trg_y = trg[1:, :]
             self.trg_mask = self.make_std_mask(self.trg, pad)
             self.ntokens = (self.trg_y != pad).sum().item()
     
     @staticmethod
     def make_std_mask(tgt, pad):
         "Create a mask to hide padding and future words."
-        tgt_mask = (tgt != pad).unsqueeze(-2)
-        tgt_mask = tgt_mask & Variable(subsequent_mask(tgt.size(-1)).type_as(tgt_mask.data))
+        tgt_mask = (tgt != pad).unsqueeze(-1)
+
+        tri =  Variable(subsequent_mask(tgt.size(0)).type_as(tgt_mask.data)).permute(1, 0, 2)
+        tgt_mask = tgt_mask & tri
         return tgt_mask
 
 def data_gen(V, batch, nbatches):
     "Generate random data for a src-tgt copy task."
     for i in range(nbatches):
-        data = torch.from_numpy(np.random.randint(1, V, size=(batch, 10)))
-        data[:, 0] = 1
+        data = torch.from_numpy(np.random.randint(1, V, size=(10, batch)))
+        data[0, :] = 1
         src = Variable(data, requires_grad=False)
         tgt = Variable(data, requires_grad=False)
         yield Batch(src, tgt, 0)
-
 
 def run_epoch(data_iter, model, loss_compute):
     "Standard Training and Logging Function"
@@ -99,7 +100,6 @@ def run_epoch(data_iter, model, loss_compute):
         total_loss += loss
         total_tokens += batch.ntokens
     return total_loss / total_tokens
-
 
 V = 11
 criterion = LabelSmoothing(size=V, padding_idx=0, smoothing=0.0)
@@ -119,13 +119,13 @@ def greedy_decode(model, src, src_mask, max_len, start_symbol):
     ys = torch.ones(1, 1).fill_(start_symbol).type_as(src.data)
     for i in range(max_len-1):
         out = model.decode(memory, src_mask, Variable(ys), Variable(subsequent_mask(ys.size(1)).type_as(src.data)))
-        prob = model.generator(out[:, -1])
+        prob = model.generator(out[-1, :])
         _, next_word = torch.max(prob, dim = 1)
         next_word = next_word.item()
-        ys = torch.cat([ys, torch.ones(1, 1).type_as(src.data).fill_(next_word)], dim=1)
+        ys = torch.cat([ys, torch.ones(1, 1).type_as(src.data).fill_(next_word)], dim=0)
     return ys
 
 model.eval()
-src = Variable(torch.LongTensor([[1,2,3,4,5,6,7,8,9,10]]) )
-src_mask = Variable(torch.ones(1, 1, 10) )
+src = Variable(torch.LongTensor([[1,2,3,4,5,6,7,8,9,10]])).permute(1, 0)
+src_mask = Variable(torch.ones(10, 1, 1) )
 print(greedy_decode(model, src, src_mask, max_len=10, start_symbol=1))
