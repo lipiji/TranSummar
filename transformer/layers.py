@@ -17,27 +17,28 @@ class MultiHeadedAttention(nn.Module):
         super(MultiHeadedAttention, self).__init__()
         assert d_model % h == 0
         # We assume d_v always equals d_k
-        self.d_k = d_model
+        self.d_k = d_model // h
         self.h = h
-        self.linears = clones(nn.Linear(d_model, h * d_model), 3)  
-        self.out_linear = nn.Linear(h * d_model, d_model)
+        self.linears = clones(nn.Linear(d_model, d_model), 3)  
+        self.out_linear = nn.Linear(d_model, d_model)
         self.attn = None
         self.dropout = nn.Dropout(p=dropout)
 
     def forward(self, query, key, value, mask=None):
         if mask is not None:
             # Same mask applied to all h heads.
-            mask = mask.permute(1, 2, 0).unsqueeze(1)
-        nbatches = query.size(1)
+            mask = mask.unsqueeze(1)
+        nbatches = query.size(0)
+        
         # 1) Do all the linear projections in batch from d_model => h x d_k 
-        query, key, value = [l(x).view(-1, nbatches, self.h, self.d_k).permute(1, 2, 0, 3)\
+        query, key, value = [l(x).view(nbatches, -1, self.h, self.d_k).transpose(1, 2)\
                                 for l, x in zip(self.linears, (query, key, value))]
-                                                                 
+      
         # 2) Apply attention on all the projected vectors in batch. 
         x, self.attn = attention(query, key, value, mask=mask, dropout=self.dropout)
 
         # 3) "Concat" using a view and apply a final linear. 
-        x = x.permute(2, 0, 1, 3).contiguous().view(-1, nbatches, self.h * self.d_k)
+        x = x.transpose(1, 2).contiguous().view(nbatches, -1, self.h * self.d_k)
         return self.out_linear(x)
 
 class PositionwiseFeedForward(nn.Module):
