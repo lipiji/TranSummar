@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 import os
-cudaid = 6
+cudaid = 7
 os.environ["CUDA_VISIBLE_DEVICES"] = str(cudaid)
 
 import sys
@@ -20,6 +20,7 @@ import data as datar
 from model import *
 from utils_pg import *
 from configs import *
+from transformer.utils import *
 
 cfg = DeepmindConfigs()
 TRAINING_DATASET_CLS = DeepmindTraining
@@ -55,7 +56,7 @@ def init_modules():
     options = {}
 
     options["is_debugging"] = False
-    options["is_predicting"] = False
+    options["is_predicting"] = True
     options["model_selection"] = False # When options["is_predicting"] = True, true means use validation set for tuning, false is real testing.
 
     options["cuda"] = cfg.CUDA and torch.cuda.is_available()
@@ -140,30 +141,23 @@ def greedy_decode(flist, batch, model, modules, consts, options):
     existence = [True] * testing_batch_size
     num_left = testing_batch_size
 
-    if options["copy"]:
-        x, word_emb, dec_state, x_mask, y, len_y, ref_sents, max_ext_len, oovs = batch
-    else:
-        x, word_emb, dec_state, x_mask, y, len_y, ref_sents = batch
+    x, x_mask, memory, y, len_y, ref_sents = batch
 
-    next_y = torch.LongTensor(-np.ones((1, testing_batch_size), dtype="int64")).to(options["device"])
+    ys = torch.LongTensor(np.zeros((testing_batch_size, 1), dtype="int64")).to(options["device"])
 
-    if options["cell"] == "lstm":
-        dec_state = (dec_state, dec_state)
-    if options["coverage"]:
-        acc_att = Variable(torch.zeros(T.transpose(x, 0, 1).size())).to(options["device"]) # B *len(x)
-     
     for step in xrange(consts["max_len_predict"]):
         if num_left == 0:
             break
-        if options["copy"] and options["coverage"]:
-            y_pred, dec_state, acc_att = model.decode_once(next_y, word_emb, dec_state, x_mask, x, max_ext_len, acc_att)
-        elif options["copy"]:
-            y_pred, dec_state = model.decode_once(next_y, word_emb, dec_state, x_mask, x, max_ext_len)
-        elif options["coverage"]:
-            y_pred, dec_state, acc_att = model.decode_once(next_y, word_emb, dec_state, x_mask, acc_att=acc_att)
-        else:
-            y_pred, dec_state = model.decode_once(next_y, word_emb, dec_state, x_mask)
+        y_mask_tri = Variable(subsequent_mask(ys.size(1)).type_as(x_mask)).to(options["device"])
+        p_y = torch.LongTensor(np.zeros((testing_batch_size, 1), dtype="int64")).to(options["device"])
+        
+        y_pred = model.decode(ys, p_y, memory, x_mask, y_mask_tri)
 
+        #_, next_word = torch.max(y_pred, dim = 1)
+        #next_word = next_word.item()
+        #next_y = torch.cat([next_y, torch.ones(num_left, 1).type_as(src.data).fill_(next_word)], dim=1)
+
+        y_pred = y_pred[:,-1,:]
         dict_size = y_pred.shape[-1]
         y_pred = y_pred.view(testing_batch_size, dict_size)
         next_y_ = torch.argmax(y_pred, 1)
@@ -174,22 +168,15 @@ def greedy_decode(flist, batch, model, modules, consts, options):
                 next_y.append(eid)
             else:
                 next_y.append(modules["lfw_emb"]) # unk for copy mechanism
-        next_y = np.array(next_y).reshape((1, testing_batch_size))
+        next_y = np.array(next_y).reshape((testing_batch_size, 1))
         next_y = torch.LongTensor(next_y).to(options["device"])
-
-        if options["coverage"]:
-            acc_att = acc_att.view(testing_batch_size, acc_att.shape[-1])
-
-        if options["cell"] == "lstm":
-            dec_state = (dec_state[0].view(testing_batch_size, dec_state[0].shape[-1]), dec_state[1].view(testing_batch_size, dec_state[1].shape[-1]))
-        else:
-            dec_state = dec_state.view(testing_batch_size, dec_state.shape[-1])
+        ys = torch.cat([ys, next_y], dim=1)
 
         for idx_doc in xrange(testing_batch_size):
             if existence[idx_doc] == False:
                 continue
 
-            idx_max = next_y[0, idx_doc].item()
+            idx_max = next_y[idx_doc, 0].item()
             if idx_max == modules["eos_emb"] and len(dec_result[idx_doc]) >= consts["min_len_predict"]:
                 existence[idx_doc] = False
                 num_left -= 1
@@ -442,7 +429,7 @@ def predict(model, modules, consts, options):
     if options["model_selection"]:
         xy_list = pickle.load(open(cfg.cc.VALIDATE_DATA_PATH + "pj1000.pkl", "r")) 
     else:
-        xy_list = pickle.load(open(cfg.cc.TESTING_DATA_PATH + "test.pkl", "r")) 
+        xy_list = pickle.load(open(cfg.cc.TESTING_DATA_PATH + "pj2000.pkl", "r")) 
     batch_list, num_files, num_batches = datar.batched(len(xy_list), options, consts)
 
     print "num_files = ", num_files, ", num_batches = ", num_batches
@@ -456,16 +443,11 @@ def predict(model, modules, consts, options):
         batch_raw = [xy_list[xy_idx] for xy_idx in test_idx]
         batch = datar.get_data(batch_raw, modules, consts, options)
         
-        assert len(test_idx) == batch.x.shape[1] # local_batch_size
-
-        x, len_x, x_mask, y, len_y, y_mask, oy, x_ext, y_ext, oovs = sort_samples(batch.x, batch.len_x, \
-                                                             batch.x_mask, batch.y, batch.len_y, batch.y_mask, \
-                                                             batch.original_summarys, batch.x_ext, batch.y_ext, batch.x_ext_words)
+        assert len(test_idx) == batch.x.shape[0] # local_batch_size
                     
-        word_emb, dec_state = model.encode(torch.LongTensor(x).to(options["device"]),\
-                                           torch.LongTensor(len_x).to(options["device"]),\
-                                           torch.FloatTensor(x_mask).to(options["device"]))
-
+        memory = model.encode(torch.LongTensor(batch.x).to(options["device"]),\
+                                           torch.LongTensor(batch.p_x).to(options["device"]),\
+                                           torch.FloatTensor(batch.x_mask).to(options["device"]))
         if options["beam_decoding"]:
             for idx_s in xrange(len(test_idx)):
                 if options["copy"]:
@@ -483,7 +465,9 @@ def predict(model, modules, consts, options):
                 inputx = (torch.LongTensor(x_ext).to(options["device"]), word_emb, dec_state, \
                           torch.FloatTensor(x_mask).to(options["device"]), y, len_y, oy, batch.max_ext_len, oovs)
             else:
-                inputx = (torch.LongTensor(x).to(options["device"]), word_emb, dec_state, torch.FloatTensor(x_mask).to(options["device"]), y, len_y, oy)
+                inputx = (torch.LongTensor(batch.x).to(options["device"]),\
+                          torch.FloatTensor(batch.x_mask).to(options["device"]),\
+                          memory, batch.y, batch.len_y, batch.original_summarys)
             greedy_decode(test_idx, inputx, model, modules, consts, options)
             si += len(test_idx)
 
@@ -531,7 +515,7 @@ def run(existing_model_name = None):
         existing_epoch = 0
         if need_load_model:
             if existing_model_name == None:
-                existing_model_name = "cnndm.s2s.gpu4.epoch7.1"
+                existing_model_name = "cnndm.s2s.transformer.gpu6.epoch21.3"
             print "loading existed model:", existing_model_name
             model, optimizer = load_model(cfg.cc.MODEL_PATH + existing_model_name, model, optimizer)
 

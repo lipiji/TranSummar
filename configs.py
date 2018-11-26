@@ -26,7 +26,7 @@ class DeepmindTraining(object):
 class DeepmindTesting(object):
     IS_UNICODE = False
     HAS_Y = True
-    BATCH_SIZE = 100
+    BATCH_SIZE = 32
     MIN_LEN_PREDICT = 35
     MAX_LEN_PREDICT = 120
     MAX_BYTE_PREDICT = None
@@ -42,7 +42,7 @@ class DeepmindConfigs():
     COPY = False
     COVERAGE = False
     BI_RNN = True
-    BEAM_SEARCH = True
+    BEAM_SEARCH = False
     BEAM_SIZE = 4
     AVG_NLL = True
     NORM_CLIP = 2
