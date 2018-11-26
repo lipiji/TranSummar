@@ -144,18 +144,13 @@ def greedy_decode(flist, batch, model, modules, consts, options):
     x, x_mask, memory, y, len_y, ref_sents = batch
 
     ys = torch.LongTensor(np.zeros((testing_batch_size, 1), dtype="int64")).to(options["device"])
-
+    p_y = torch.LongTensor(np.zeros((testing_batch_size, 1), dtype="int64")).to(options["device"])
     for step in xrange(consts["max_len_predict"]):
         if num_left == 0:
             break
         y_mask_tri = Variable(subsequent_mask(ys.size(1)).type_as(x_mask)).to(options["device"])
-        p_y = torch.LongTensor(np.zeros((testing_batch_size, 1), dtype="int64")).to(options["device"])
         
         y_pred = model.decode(ys, p_y, memory, x_mask, y_mask_tri)
-
-        #_, next_word = torch.max(y_pred, dim = 1)
-        #next_word = next_word.item()
-        #next_y = torch.cat([next_y, torch.ones(num_left, 1).type_as(src.data).fill_(next_word)], dim=1)
 
         y_pred = y_pred[:,-1,:]
         dict_size = y_pred.shape[-1]
@@ -171,7 +166,8 @@ def greedy_decode(flist, batch, model, modules, consts, options):
         next_y = np.array(next_y).reshape((testing_batch_size, 1))
         next_y = torch.LongTensor(next_y).to(options["device"])
         ys = torch.cat([ys, next_y], dim=1)
-
+        p_y = torch.cat([p_y, torch.LongTensor(np.zeros((testing_batch_size, 1), dtype="int64") + step + 1).to(options["device"])], dim=1)
+       
         for idx_doc in xrange(testing_batch_size):
             if existence[idx_doc] == False:
                 continue
@@ -221,8 +217,8 @@ def beam_decode(fname, batch, model, modules, consts, options):
     fname = str(fname)
 
     beam_size = consts["beam_size"]
-    num_live = 1
     num_dead = 0
+    num_live = 1
     samples = []
     sample_scores = np.zeros(beam_size)
 
@@ -230,47 +226,26 @@ def beam_decode(fname, batch, model, modules, consts, options):
     last_scores = torch.FloatTensor(np.zeros(1)).to(options["device"])
     last_states = []
 
-    if options["copy"]:
-        x, word_emb, dec_state, x_mask, y, len_y, ref_sents, max_ext_len, oovs = batch
-    else:
-        x, word_emb, dec_state, x_mask, y, len_y, ref_sents = batch
+    x, x_mask, memory, y, len_y, ref_sents = batch
     
-    next_y = torch.LongTensor(-np.ones((1, num_live), dtype="int64")).to(options["device"])
-    x = x.unsqueeze(1)
-    word_emb = word_emb.unsqueeze(1)
-    x_mask = x_mask.unsqueeze(1)
-    dec_state = dec_state.unsqueeze(0)
-    if options["cell"] == "lstm":
-        dec_state = (dec_state, dec_state)
+    ys = torch.LongTensor(np.zeros((num_live, 1), dtype="int64")).to(options["device"])
+    x = x.unsqueeze(0)
+    memory = memory.unsqueeze(0)
+    x_mask = x_mask.unsqueeze(0)
+    p_y = torch.LongTensor(np.zeros((num_live, 1), dtype="int64")).to(options["device"])
     
-    if options["coverage"]:
-        acc_att = Variable(torch.zeros(T.transpose(x, 0, 1).size())).to(options["device"]) # B *len(x)
-        last_acc_att = [] 
-
     for step in xrange(consts["max_len_predict"]):
-        tile_word_emb = word_emb.repeat(1, num_live, 1)
-        tile_x_mask = x_mask.repeat(1, num_live, 1)
-        if options["copy"]:
-            tile_x = x.repeat(1, num_live)
+        tile_memory = memory.repeat(num_live, 1, 1)
+        tile_x_mask = x_mask.repeat(num_live, 1, 1)
 
-        if options["copy"] and options["coverage"]:
-            y_pred, dec_state, acc_att = model.decode_once(next_y, tile_word_emb, dec_state, tile_x_mask, tile_x, max_ext_len, acc_att)
-        elif options["copy"]:
-            y_pred, dec_state = model.decode_once(next_y, tile_word_emb, dec_state, tile_x_mask, tile_x, max_ext_len)
-        elif options["coverage"]:
-            y_pred, dec_state, acc_att = model.decode_once(next_y, tile_word_emb, dec_state, tile_x_mask, acc_att=acc_att)
-        else:
-            y_pred, dec_state = model.decode_once(next_y, tile_word_emb, dec_state, tile_x_mask)
+        y_mask_tri = Variable(subsequent_mask(ys.size(1)).type_as(x_mask)).to(options["device"])
+
+        y_pred = model.decode(ys, p_y, tile_memory, tile_x_mask, y_mask_tri)
+        
         dict_size = y_pred.shape[-1]
+        y_pred = y_pred[:,-1,:]
         y_pred = y_pred.view(num_live, dict_size)
-        if options["coverage"]:
-            acc_att = acc_att.view(num_live, acc_att.shape[-1])
-
-        if options["cell"] == "lstm":
-            dec_state = (dec_state[0].view(num_live, dec_state[0].shape[-1]), dec_state[1].view(num_live, dec_state[1].shape[-1]))
-        else:
-            dec_state = dec_state.view(num_live, dec_state.shape[-1])
-  
+ 
         cand_scores = last_scores + torch.log(y_pred) # larger is better
         cand_scores = cand_scores.flatten()
         idx_top_joint_scores = torch.topk(cand_scores, beam_size - num_dead)[1]
@@ -283,36 +258,27 @@ def beam_decode(fname, batch, model, modules, consts, options):
         traces_now = []
         scores_now = np.zeros((beam_size - num_dead))
         states_now = []
-        if options["coverage"]: 
-            acc_att_now = []
-            last_acc_att = []
         
         for i, [j, k] in enumerate(zip(idx_last_traces, idx_word_now)):
             traces_now.append(last_traces[j] + [k])
             scores_now[i] = copy.copy(top_joint_scores[i])
-            if options["cell"] == "lstm":
-                states_now.append((copy.copy(dec_state[0][j, :]), copy.copy(dec_state[1][j, :])))
-            else:
-                states_now.append(copy.copy(dec_state[j, :]))
-            if options["coverage"]:
-                acc_att_now.append(copy.copy(acc_att[j, :]))
 
         num_live = 0
         last_traces = []
         last_scores = []
         last_states = []
+        dead_ids = []
         for i in xrange(len(traces_now)):
             if traces_now[i][-1] == modules["eos_emb"] and len(traces_now[i]) >= consts["min_len_predict"]:
                 samples.append([str(e.item()) for e in traces_now[i][:-1]])
                 sample_scores[num_dead] = scores_now[i]
                 num_dead += 1
+                dead_ids += [i]
             else:
                 last_traces.append(traces_now[i])
                 last_scores.append(scores_now[i])
-                last_states.append(states_now[i])
-                if options["coverage"]:
-                    last_acc_att.append(acc_att_now[i])
                 num_live += 1
+        
         if num_live == 0 or num_dead >= beam_size:
             break
 
@@ -325,21 +291,19 @@ def beam_decode(fname, batch, model, modules, consts, options):
             else:
                 next_y.append(modules["lfw_emb"]) # unk for copy mechanism
 
-        next_y = np.array(next_y).reshape((1, num_live))
+        next_y = np.array(next_y).reshape((num_live, 1))
         next_y = torch.LongTensor(next_y).to(options["device"])
-        if options["cell"] == "lstm":
-            h_states = []
-            c_states = []
-            for state in last_states:
-                h_states.append(state[0])
-                c_states.append(state[1])
-            dec_state = (torch.stack(h_states).view((num_live, h_states[0].shape[-1])),\
-                         torch.stack(c_states).view((num_live, c_states[0].shape[-1])))
-        else:
-            dec_state = torch.stack(last_states).view((num_live, dec_state.shape[-1]))
-        if options["coverage"]:
-            acc_att = torch.stack(last_acc_att).view((num_live, acc_att.shape[-1])) 
-            
+        if step == 0:
+            ys = ys.repeat(num_live, 1)
+            p_y = p_y.repeat(num_live, 1)
+        ys_ = []
+        py_ = []
+        for i in xrange(ys.size(0)):
+            if i not in dead_ids:
+                ys_.append(ys[i,:])
+                py_.append(p_y[i,:])
+        ys = torch.cat([torch.stack(ys_), next_y], dim=1)
+        p_y = torch.cat([torch.stack(py_), torch.LongTensor(np.zeros((num_live, 1), dtype="int64") + step + 1).to(options["device"])], dim=1)
         assert num_live + num_dead == beam_size
 
     if num_live > 0:
@@ -455,8 +419,9 @@ def predict(model, modules, consts, options):
                           torch.FloatTensor(x_mask[:, idx_s, :]).to(options["device"]), y[:, idx_s], [len_y[idx_s]], oy[idx_s],\
                           batch.max_ext_len, oovs[idx_s])
                 else:
-                    inputx = (torch.LongTensor(x[:, idx_s]).to(options["device"]), word_emb[:, idx_s, :], dec_state[idx_s, :],\
-                          torch.FloatTensor(x_mask[:, idx_s, :]).to(options["device"]), y[:, idx_s], [len_y[idx_s]], oy[idx_s])
+                    inputx = (torch.LongTensor(batch.x[idx_s, :]).to(options["device"]), \
+                              torch.FloatTensor(batch.x_mask[idx_s, :]).to(options["device"]),\
+                              memory[idx_s, :], batch.y[idx_s,:], [batch.len_y[idx_s]], batch.original_summarys[idx_s])
 
                 beam_decode(si, inputx, model, modules, consts, options)
                 si += 1

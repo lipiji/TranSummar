@@ -42,7 +42,7 @@ class DeepmindConfigs():
     COPY = False
     COVERAGE = False
     BI_RNN = True
-    BEAM_SEARCH = False
+    BEAM_SEARCH = True
     BEAM_SIZE = 4
     AVG_NLL = True
     NORM_CLIP = 2
