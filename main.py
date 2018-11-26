@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 import os
-cudaid = 0
+cudaid = 6
 os.environ["CUDA_VISIBLE_DEVICES"] = str(cudaid)
 
 import sys
@@ -54,7 +54,7 @@ def init_modules():
 
     options = {}
 
-    options["is_debugging"] = True
+    options["is_debugging"] = False
     options["is_predicting"] = False
     options["model_selection"] = False # When options["is_predicting"] = True, true means use validation set for tuning, false is real testing.
 
@@ -565,12 +565,14 @@ def run(existing_model_name = None):
                     
                     model.zero_grad()
                     
-                    h = model(torch.LongTensor(batch.x).to(options["device"]),\
+                    y_pred, cost, cost_c = model(torch.LongTensor(batch.x).to(options["device"]),\
                               torch.LongTensor(batch.p_x).to(options["device"]),\
                               torch.FloatTensor(batch.x_mask).to(options["device"]),\
+                              torch.LongTensor(batch.y_inp).to(options["device"]),\
+                              torch.LongTensor(batch.p_y).to(options["device"]),\
+                              torch.FloatTensor(batch.y_mask_tri).to(options["device"]),\
+                              torch.LongTensor(batch.y).to(options["device"]),\
                               torch.FloatTensor(batch.y_mask).to(options["device"]))
-
-                    print h.shape
 
                     if cost_c is None:
                         loss = cost
@@ -580,7 +582,7 @@ def run(existing_model_name = None):
                         error_c += cost_c
                     
                     loss.backward()
-                    torch.nn.utils.clip_grad_norm_(model.parameters(), consts["norm_clip"])
+                    #torch.nn.utils.clip_grad_norm_(model.parameters(), consts["norm_clip"])
                     optimizer.step()
                     
                     cost = cost.item()
@@ -602,7 +604,7 @@ def run(existing_model_name = None):
                 print "cost_c =", error_c / used_batch, ",",
                 print "time:", time.time() - epoch_start
 
-                print_sent_dec(y_pred, y_ext, y_mask, oovs, modules, consts, options, local_batch_size)
+                print_sent_dec(y_pred, batch.y_ext, batch.y_mask, batch.x_ext_words, modules, consts, options, local_batch_size)
                 
                 if last_total_error > total_error or options["is_debugging"]:
                     last_total_error = total_error

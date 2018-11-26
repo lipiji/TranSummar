@@ -21,7 +21,7 @@ class DeepmindTraining(object):
     IS_UNICODE = False
     REMOVES_PUNCTION = False
     HAS_Y = True
-    BATCH_SIZE = 32
+    BATCH_SIZE = 40
 
 class DeepmindTesting(object):
     IS_UNICODE = False

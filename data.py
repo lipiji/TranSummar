@@ -8,18 +8,21 @@ from operator import itemgetter
 import numpy as np
 import cPickle as pickle
 from random import shuffle
+from transformer.utils import subsequent_mask 
 
 class BatchData:
     def __init__(self, flist, modules, consts, options):
         self.batch_size = len(flist) 
-        self.x = np.zeros((consts["len_x"], self.batch_size), dtype = np.int64)
-        self.x_ext = np.zeros((consts["len_x"], self.batch_size), dtype = np.int64)
-        self.p_x = np.zeros((consts["len_x"], self.batch_size), dtype = np.int64)
-        self.y = np.zeros((consts["len_y"], self.batch_size), dtype = np.int64)
-        self.y_ext = np.zeros((consts["len_y"], self.batch_size), dtype = np.int64)
-        self.p_y = np.zeros((consts["len_y"], self.batch_size), dtype = np.int64)
-        self.x_mask = np.zeros((consts["len_x"], self.batch_size, 1), dtype = np.int64)
-        self.y_mask = np.zeros((consts["len_y"], self.batch_size, 1), dtype = np.int64)
+        self.x = np.zeros((self.batch_size, consts["len_x"]), dtype = np.int64)
+        self.x_ext = np.zeros((self.batch_size, consts["len_x"]), dtype = np.int64)
+        self.p_x = np.zeros((self.batch_size, consts["len_x"]), dtype = np.int64)
+        self.y = np.zeros((self.batch_size, consts["len_y"]), dtype = np.int64)
+        self.y_ext = np.zeros((self.batch_size, consts["len_y"]), dtype = np.int64)
+        self.y_inp = np.zeros((self.batch_size, consts["len_y"]), dtype = np.int64)
+        self.p_y = np.zeros((self.batch_size, consts["len_y"]), dtype = np.int64)
+        self.x_mask = np.zeros((self.batch_size, 1, consts["len_x"]), dtype = np.int64)
+        self.y_mask = np.zeros((self.batch_size, 1, consts["len_y"]), dtype = np.int64)
+        self.y_mask_tri = np.zeros((self.batch_size, consts["len_y"], consts["len_y"]), dtype = np.int64)
         self.len_x = []
         self.len_y = []
         self.original_contents = []
@@ -52,16 +55,16 @@ class BatchData:
                     if w not in w2i: # OOV
                         if w not in xi_oovs:
                             xi_oovs.append(w)
-                        self.x_ext[idx_word, idx_doc] = dict_size + xi_oovs.index(w) # 500005, 51000
+                        self.x_ext[idx_doc, idx_word] = dict_size + xi_oovs.index(w) # 500005, 51000
                         w = i2w[modules["lfw_emb"]]
                     else:
-                        self.x_ext[idx_word, idx_doc] = w2i[w]
+                        self.x_ext[idx_doc, idx_word] = w2i[w]
                     
-                    self.x[idx_word, idx_doc] = w2i[w]
-                    self.x_mask[idx_word, idx_doc, 0] = 1
-                    self.p_x[idx_word, idx_doc] = idx_word + 1
+                    self.x[idx_doc, idx_word] = w2i[w]
+                    self.x_mask[idx_doc, 0, idx_word] = 1
+                    self.p_x[idx_doc, idx_word] = idx_word + 1
 
-            self.len_x.append(np.sum(self.x_mask[:, idx_doc, :]))
+            self.len_x.append(np.sum(self.x_mask[idx_doc, :, :]))
             self.x_ext_words.append(xi_oovs)
             if self.max_ext_len < len(xi_oovs):
                 self.max_ext_len = len(xi_oovs)
@@ -72,29 +75,37 @@ class BatchData:
                     
                     if w not in w2i:
                         if w in xi_oovs:
-                            self.y_ext[idx_word, idx_doc] = dict_size + xi_oovs.index(w)
+                            self.y_ext[idx_doc, idx_word] = dict_size + xi_oovs.index(w)
                         else:
-                            self.y_ext[idx_word, idx_doc] = w2i[i2w[modules["lfw_emb"]]] # unk
+                            self.y_ext[idx_doc, idx_word] = w2i[i2w[modules["lfw_emb"]]] # unk
                         w = i2w[modules["lfw_emb"]] 
                     else:
-                        self.y_ext[idx_word, idx_doc] =  w2i[w]
-                    self.y[idx_word, idx_doc] = w2i[w]
-                    self.p_y[idx_word, idx_doc] = idx_word + 1
+                        self.y_ext[idx_doc, idx_word] =  w2i[w]
+                    self.y[idx_doc, idx_word] = w2i[w]
+                    if (idx_word + 1) < len(summary):
+                        self.y_inp[idx_doc, idx_word + 1] = w2i[w] # teacher forcing
+                    self.p_y[idx_doc, idx_word] = idx_word # 1st:0 
                     if not options["is_predicting"]:
-                        self.y_mask[idx_word, idx_doc, 0] = 1
-                self.len_y.append(len(summary))
+                        self.y_mask[idx_doc, 0, idx_word] = 1
+                len_summ = len(summary)
+                self.len_y.append(len_summ)
+                self.y_mask_tri[idx_doc,:len_summ, :len_summ] = subsequent_mask(len_summ)
             else:
-                self.y = self.y_mask = None
+                self.y = self.y_mask = self.y_mask_tri=None
 
         max_len_x = int(np.max(self.len_x))
         max_len_y = int(np.max(self.len_y))
         
-        self.x = self.x[0:max_len_x, :]
-        self.x_ext = self.x_ext[0:max_len_x, :]
-        self.x_mask = self.x_mask[0:max_len_x, :, :]
-        self.y = self.y[0:max_len_y, :]
-        self.y_ext = self.y_ext[0:max_len_y, :]
-        self.y_mask = self.y_mask[0:max_len_y, :, :]
+        self.x = self.x[:, 0:max_len_x]
+        self.x_ext = self.x_ext[:, 0:max_len_x]
+        self.x_mask = self.x_mask[:, :, 0:max_len_x]
+        self.p_x = self.p_x[:, 0:max_len_x]
+        self.y = self.y[:, 0:max_len_y]
+        self.y_ext = self.y_ext[:, 0:max_len_y]
+        self.y_inp = self.y_inp[:, 0:max_len_y]
+        self.y_mask = self.y_mask[:, :, 0:max_len_y]
+        self.y_mask_tri = self.y_mask_tri[:, 0:max_len_y, 0:max_len_y]
+        self.p_y = self.p_y[:, 0:max_len_y]
 
 def get_data(xy_list, modules, consts, options):
     return BatchData(xy_list,  modules, consts, options)

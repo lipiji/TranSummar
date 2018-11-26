@@ -94,7 +94,7 @@ def sort_samples(x, len_x, mask_x, y, len_y, \
 
 def print_sent_dec(y_pred, y, y_mask, oovs, modules, consts, options, batch_size):
     print "golden truth and prediction samples:"
-    max_y_words = np.sum(y_mask, axis = 0)
+    max_y_words = np.sum(y_mask, axis = -1)
     max_y_words = max_y_words.reshape((batch_size))
     max_num_docs = 16 if batch_size > 16 else batch_size
     is_unicode = options["is_unicode"]
@@ -103,7 +103,7 @@ def print_sent_dec(y_pred, y, y_mask, oovs, modules, consts, options, batch_size
         print idx_doc + 1, "----------------------------------------------------------------------------------------------------"
         sent_true= ""
         for idx_word in range(max_y_words[idx_doc]):
-            i = y[idx_word, idx_doc] if options["has_learnable_w2v"] else np.argmax(y[idx_word, idx_doc]) 
+            i = y[idx_doc, idx_word] if options["has_learnable_w2v"] else np.argmax(y[idx_doc, idx_word]) 
             if i in modules["i2w"]:
                 sent_true += modules["i2w"][i]
             else:
@@ -119,7 +119,7 @@ def print_sent_dec(y_pred, y, y_mask, oovs, modules, consts, options, batch_size
         print
         sent_pred = ""
         for idx_word in range(max_y_words[idx_doc]):
-            i = torch.argmax(y_pred[idx_word, idx_doc, :]).item()
+            i = torch.argmax(y_pred[idx_doc, idx_word, :]).item()
             if i in modules["i2w"]:
                 sent_pred += modules["i2w"][i]
             else:
