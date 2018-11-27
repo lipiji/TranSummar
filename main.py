@@ -55,8 +55,8 @@ def init_modules():
 
     options = {}
 
-    options["is_debugging"] = False
-    options["is_predicting"] = True
+    options["is_debugging"] = True
+    options["is_predicting"] = False
     options["model_selection"] = False # When options["is_predicting"] = True, true means use validation set for tuning, false is real testing.
 
     options["cuda"] = cfg.CUDA and torch.cuda.is_available()

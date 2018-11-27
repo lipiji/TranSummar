@@ -21,6 +21,7 @@ class LocalEncoder(nn.Module):
         self.encoder = Encoder(EncoderLayer(d_model, attn, ff, dropout), N)
         
     def forward(self, x, p, mask_x):
+        print x.shape, p.shape, mask_x.shape
         emb_x = self.w_emb(x)
         emb_p = self.p_emb(p)
         return self.encoder(self.dropout(emb_x + emb_p), mask_x)  
