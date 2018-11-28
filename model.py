@@ -41,12 +41,13 @@ class Model(nn.Module):
         #self.sent_pos_size = consts["sent_pos_size"]
 
         self.word_emb = Embeddings(self.dict_size, self.dim_x, self.pad_token_idx)
-        self.pos_emb = PositionEmbeddings(self.dim_x, self.word_pos_size)
+        self.pos_emb_w = PositionEmbeddings(self.dim_x, self.word_pos_size)
+        self.pos_emb_s = PositionEmbeddings(self.dim_x, self.word_pos_size)
 
-        self.encoder = LocalEncoder(self.word_emb, self.pos_emb,\
+        self.encoder = LocalEncoder(self.word_emb, self.pos_emb_w, self.pos_emb_s, \
                                     self.d_model, self.d_ff, self.num_heads,\
                                     self.dropout, self.num_layers)
-        self.decoder = LocalDecoder(self.word_emb, self.pos_emb, self.dict_size, \
+        self.decoder = LocalDecoder(self.word_emb, self.pos_emb_w, self.pos_emb_s, self.dict_size, \
                                     self.d_model, self.d_ff, self.num_heads,\
                                     self.dropout, self.num_layers)
 
@@ -75,15 +76,15 @@ class Model(nn.Module):
         cost = cost.view((y.size(0), -1))
         return T.mean(cost) 
 
-    def encode(self, x, p, mask_x):
-        return self.encoder(x, p, mask_x)
+    def encode(self, x, p, ps, mask_x):
+        return self.encoder(x, p, ps, mask_x)
 
-    def decode(self, x, p, m, mask_x, mask_y):
-        return self.decoder(x, p, m, mask_x, mask_y)
+    def decode(self, x, p, ps, m, mask_x, mask_y):
+        return self.decoder(x, p, ps, m, mask_x, mask_y)
     
-    def forward(self, x, p_x, mask_x, y, p_y, mask_y_tri, y_tgt, mask_y):
-        hs = self.encode(x, p_x, mask_x)
-        pred = self.decode(y, p_y, hs, mask_x, mask_y_tri)
+    def forward(self, x, px, pxs, mask_x, y, py, pys, mask_y_tri, y_tgt, mask_y):
+        hs = self.encode(x, px, pxs, mask_x)
+        pred = self.decode(y, py, pys, hs, mask_x, mask_y_tri)
         loss = self.nll_loss(pred, y_tgt, mask_y)
         return pred, loss, None
     

@@ -15,11 +15,13 @@ class BatchData:
         self.batch_size = len(flist) 
         self.x = np.zeros((self.batch_size, consts["len_x"]), dtype = np.int64)
         self.x_ext = np.zeros((self.batch_size, consts["len_x"]), dtype = np.int64)
-        self.p_x = np.zeros((self.batch_size, consts["len_x"]), dtype = np.int64)
+        self.px = np.zeros((self.batch_size, consts["len_x"]), dtype = np.int64)
+        self.pxs = np.zeros((self.batch_size, consts["len_x"]), dtype = np.int64)
         self.y = np.zeros((self.batch_size, consts["len_y"]), dtype = np.int64)
         self.y_ext = np.zeros((self.batch_size, consts["len_y"]), dtype = np.int64)
         self.y_inp = np.zeros((self.batch_size, consts["len_y"]), dtype = np.int64)
-        self.p_y = np.zeros((self.batch_size, consts["len_y"]), dtype = np.int64)
+        self.py = np.zeros((self.batch_size, consts["len_y"]), dtype = np.int64)
+        self.pys = np.zeros((self.batch_size, consts["len_y"]), dtype = np.int64)
         self.x_mask = np.zeros((self.batch_size, 1, consts["len_x"]), dtype = np.int64)
         self.y_mask = np.zeros((self.batch_size, 1, consts["len_y"]), dtype = np.int64)
         self.y_mask_tri = np.zeros((self.batch_size, consts["len_y"], consts["len_y"]), dtype = np.int64)
@@ -46,12 +48,20 @@ class BatchData:
             self.original_contents.append(original_content)
             self.original_summarys.append(original_summary)
             xi_oovs = []
+
+            send_id = 1
+            num_word = 0
             for idx_word in xrange(len(content)):
                     # some sentences in duc is longer than len_x
                     if idx_word == consts["len_x"]:
                         break
                     w = content[idx_word]
                     
+                    num_word += 1
+                    if idx_word > 0 and content[idx_word - 1] == "." and num_word >= 10:
+                        send_id += 1
+                        num_word = 1
+            
                     if w not in w2i: # OOV
                         if w not in xi_oovs:
                             xi_oovs.append(w)
@@ -62,7 +72,8 @@ class BatchData:
                     
                     self.x[idx_doc, idx_word] = w2i[w]
                     self.x_mask[idx_doc, 0, idx_word] = 1
-                    self.p_x[idx_doc, idx_word] = idx_word + 1
+                    self.px[idx_doc, idx_word] = num_word
+                    self.pxs[idx_doc, idx_word] = send_id
 
             self.len_x.append(np.sum(self.x_mask[idx_doc, :, :]))
             self.x_ext_words.append(xi_oovs)
@@ -70,9 +81,16 @@ class BatchData:
                 self.max_ext_len = len(xi_oovs)
 
             if options["has_y"]:
+                send_id = 1 
+                num_word = 0  
                 for idx_word in xrange(len(summary)):
                     w = summary[idx_word]
                     
+                    num_word += 1
+                    if idx_word > 0 and summary[idx_word - 1] == "." and num_word >= 10:
+                        send_id += 1
+                        num_word = 1
+
                     if w not in w2i:
                         if w in xi_oovs:
                             self.y_ext[idx_doc, idx_word] = dict_size + xi_oovs.index(w)
@@ -84,7 +102,9 @@ class BatchData:
                     self.y[idx_doc, idx_word] = w2i[w]
                     if (idx_word + 1) < len(summary):
                         self.y_inp[idx_doc, idx_word + 1] = w2i[w] # teacher forcing
-                    self.p_y[idx_doc, idx_word] = idx_word # 1st:0 
+                    self.py[idx_doc, idx_word] = num_word # 1st:0 
+                    self.pys[idx_doc, idx_word] = send_id
+
                     if not options["is_predicting"]:
                         self.y_mask[idx_doc, 0, idx_word] = 1
                 len_summ = len(summary)
@@ -99,13 +119,15 @@ class BatchData:
         self.x = self.x[:, 0:max_len_x]
         self.x_ext = self.x_ext[:, 0:max_len_x]
         self.x_mask = self.x_mask[:, :, 0:max_len_x]
-        self.p_x = self.p_x[:, 0:max_len_x]
+        self.px = self.px[:, 0:max_len_x]
+        self.pxs = self.pxs[:, 0:max_len_x]
         self.y = self.y[:, 0:max_len_y]
         self.y_ext = self.y_ext[:, 0:max_len_y]
         self.y_inp = self.y_inp[:, 0:max_len_y]
         self.y_mask = self.y_mask[:, :, 0:max_len_y]
         self.y_mask_tri = self.y_mask_tri[:, 0:max_len_y, 0:max_len_y]
-        self.p_y = self.p_y[:, 0:max_len_y]
+        self.py = self.py[:, 0:max_len_y]
+        self.pys = self.pys[:, 0:max_len_y]
 
 def get_data(xy_list, modules, consts, options):
     return BatchData(xy_list,  modules, consts, options)

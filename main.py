@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 import os
-cudaid = 7
+cudaid = 6
 os.environ["CUDA_VISIBLE_DEVICES"] = str(cudaid)
 
 import sys
@@ -55,7 +55,7 @@ def init_modules():
 
     options = {}
 
-    options["is_debugging"] = True
+    options["is_debugging"] = False
     options["is_predicting"] = False
     options["model_selection"] = False # When options["is_predicting"] = True, true means use validation set for tuning, false is real testing.
 
@@ -515,10 +515,12 @@ def run(existing_model_name = None):
                     model.zero_grad()
                     
                     y_pred, cost, cost_c = model(torch.LongTensor(batch.x).to(options["device"]),\
-                              torch.LongTensor(batch.p_x).to(options["device"]),\
+                              torch.LongTensor(batch.px).to(options["device"]),\
+                              torch.LongTensor(batch.pxs).to(options["device"]),\
                               torch.FloatTensor(batch.x_mask).to(options["device"]),\
                               torch.LongTensor(batch.y_inp).to(options["device"]),\
-                              torch.LongTensor(batch.p_y).to(options["device"]),\
+                              torch.LongTensor(batch.py).to(options["device"]),\
+                              torch.LongTensor(batch.pys).to(options["device"]),\
                               torch.FloatTensor(batch.y_mask_tri).to(options["device"]),\
                               torch.LongTensor(batch.y).to(options["device"]),\
                               torch.FloatTensor(batch.y_mask).to(options["device"]))
