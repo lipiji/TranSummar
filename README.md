@@ -1,7 +1,7 @@
 # TranSummar
 Transformer for abstractive summarization
 
-#### v0.1, God...
+#### v0.1, pure transformer (no copy, no coverage), God...
 ```
 C ROUGE-1 Average_R: 0.24362 (95%-conf.int. 0.23983 - 0.24735)
 C ROUGE-1 Average_P: 0.30875 (95%-conf.int. 0.30346 - 0.31412)
