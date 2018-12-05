@@ -26,4 +26,8 @@ class Optim:
             step = self._step
         return self.factor * (self.model_size ** (-0.5) * min(step ** (-0.5), step * self.warmup ** (-1.5)))
 
+    def state_dict(self):
+        return self.optimizer.state_dict()
 
+    def load_state_dict(self, m):
+        self.optimizer.load_state_dict(m)

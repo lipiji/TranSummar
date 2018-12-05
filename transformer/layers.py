@@ -51,7 +51,7 @@ class PositionwiseFeedForward(nn.Module):
         self.dropout = nn.Dropout(dropout)
 
     def forward(self, x):
-        return self.w_2(self.dropout(F.relu(self.w_1(x))))
+        return self.w_2(self.dropout(gelu(self.w_1(x))))
 
 class LayerNorm(nn.Module):
     def __init__(self, features, eps=1e-6):

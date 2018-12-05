@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 import os
-cudaid = 6
+cudaid = 7
 os.environ["CUDA_VISIBLE_DEVICES"] = str(cudaid)
 
 import sys
@@ -56,7 +56,7 @@ def init_modules():
     options = {}
 
     options["is_debugging"] = False
-    options["is_predicting"] = False
+    options["is_predicting"] = True
     options["model_selection"] = False # When options["is_predicting"] = True, true means use validation set for tuning, false is real testing.
 
     options["cuda"] = cfg.CUDA and torch.cuda.is_available()
@@ -232,15 +232,16 @@ def beam_decode(fname, batch, model, modules, consts, options):
     x = x.unsqueeze(0)
     memory = memory.unsqueeze(0)
     x_mask = x_mask.unsqueeze(0)
-    p_y = torch.LongTensor(np.zeros((num_live, 1), dtype="int64")).to(options["device"])
-    
+    py = torch.LongTensor(np.zeros((num_live, 1), dtype="int64")).to(options["device"])
+    pys = torch.LongTensor(np.zeros((num_live, 1), dtype="int64")).to(options["device"])
+
     for step in xrange(consts["max_len_predict"]):
         tile_memory = memory.repeat(num_live, 1, 1)
         tile_x_mask = x_mask.repeat(num_live, 1, 1)
 
         y_mask_tri = Variable(subsequent_mask(ys.size(1)).type_as(x_mask)).to(options["device"])
 
-        y_pred = model.decode(ys, p_y, tile_memory, tile_x_mask, y_mask_tri)
+        y_pred = model.decode(ys, py, pys, tile_memory, tile_x_mask, y_mask_tri)
         
         dict_size = y_pred.shape[-1]
         y_pred = y_pred[:,-1,:]
@@ -295,15 +296,15 @@ def beam_decode(fname, batch, model, modules, consts, options):
         next_y = torch.LongTensor(next_y).to(options["device"])
         if step == 0:
             ys = ys.repeat(num_live, 1)
-            p_y = p_y.repeat(num_live, 1)
+            py = py.repeat(num_live, 1)
         ys_ = []
         py_ = []
         for i in xrange(ys.size(0)):
             if i not in dead_ids:
                 ys_.append(ys[i,:])
-                py_.append(p_y[i,:])
+                py_.append(py[i,:])
         ys = torch.cat([torch.stack(ys_), next_y], dim=1)
-        p_y = torch.cat([torch.stack(py_), torch.LongTensor(np.zeros((num_live, 1), dtype="int64") + step + 1).to(options["device"])], dim=1)
+        py = torch.cat([torch.stack(py_), torch.LongTensor(np.zeros((num_live, 1), dtype="int64") + step + 1).to(options["device"])], dim=1)
         assert num_live + num_dead == beam_size
 
     if num_live > 0:
@@ -410,8 +411,9 @@ def predict(model, modules, consts, options):
         assert len(test_idx) == batch.x.shape[0] # local_batch_size
                     
         memory = model.encode(torch.LongTensor(batch.x).to(options["device"]),\
-                                           torch.LongTensor(batch.p_x).to(options["device"]),\
-                                           torch.FloatTensor(batch.x_mask).to(options["device"]))
+                              torch.LongTensor(batch.px).to(options["device"]),\
+                              torch.LongTensor(batch.pxs).to(options["device"]),\
+                              torch.FloatTensor(batch.x_mask).to(options["device"]))
         if options["beam_decoding"]:
             for idx_s in xrange(len(test_idx)):
                 if options["copy"]:
@@ -480,7 +482,7 @@ def run(existing_model_name = None):
         existing_epoch = 0
         if need_load_model:
             if existing_model_name == None:
-                existing_model_name = "cnndm.s2s.transformer.gpu6.epoch21.3"
+                existing_model_name = "cnndm.s2s.transformer.gpu6.epoch22.1"
             print "loading existed model:", existing_model_name
             model, optimizer = load_model(cfg.cc.MODEL_PATH + existing_model_name, model, optimizer)
 

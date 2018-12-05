@@ -16,4 +16,6 @@ def subsequent_mask(size):
     subsequent_mask = np.triu(np.ones(attn_shape), k=1).astype('uint8')
     return torch.from_numpy(subsequent_mask) == 0
 
-
+def gelu(x):
+    cdf = 0.5 * (1.0 + torch.erf(x / math.sqrt(2.0)))
+    return cdf*x

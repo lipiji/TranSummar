@@ -26,7 +26,7 @@ class DeepmindTraining(object):
 class DeepmindTesting(object):
     IS_UNICODE = False
     HAS_Y = True
-    BATCH_SIZE = 32
+    BATCH_SIZE = 100
     MIN_LEN_PREDICT = 35
     MAX_LEN_PREDICT = 120
     MAX_BYTE_PREDICT = None
