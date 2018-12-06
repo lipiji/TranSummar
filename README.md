@@ -31,3 +31,35 @@ C ROUGE-SU4 Average_R: 0.07792 (95%-conf.int. 0.07602 - 0.07981)
 C ROUGE-SU4 Average_P: 0.09968 (95%-conf.int. 0.09727 - 0.10217)
 C ROUGE-SU4 Average_F: 0.08413 (95%-conf.int. 0.08231 - 0.08612)
 ```
+
+#### v0.1 pure transformer (no copy, no coverage), agiga dataset:
+```
+---------------------------------------------
+C ROUGE-1 Average_R: 0.30362 (95%-conf.int. 0.29321 - 0.31407)
+C ROUGE-1 Average_P: 0.33774 (95%-conf.int. 0.32596 - 0.34937)
+C ROUGE-1 Average_F: 0.30887 (95%-conf.int. 0.29825 - 0.31908)
+---------------------------------------------
+C ROUGE-2 Average_R: 0.12693 (95%-conf.int. 0.11832 - 0.13503)
+C ROUGE-2 Average_P: 0.14246 (95%-conf.int. 0.13284 - 0.15168)
+C ROUGE-2 Average_F: 0.12914 (95%-conf.int. 0.12035 - 0.13737)
+---------------------------------------------
+C ROUGE-3 Average_R: 0.06062 (95%-conf.int. 0.05380 - 0.06773)
+C ROUGE-3 Average_P: 0.06913 (95%-conf.int. 0.06154 - 0.07687)
+C ROUGE-3 Average_F: 0.06184 (95%-conf.int. 0.05493 - 0.06911)
+---------------------------------------------
+C ROUGE-4 Average_R: 0.03088 (95%-conf.int. 0.02527 - 0.03711)
+C ROUGE-4 Average_P: 0.03660 (95%-conf.int. 0.03019 - 0.04319)
+C ROUGE-4 Average_F: 0.03195 (95%-conf.int. 0.02616 - 0.03813)
+---------------------------------------------
+C ROUGE-L Average_R: 0.27958 (95%-conf.int. 0.26907 - 0.28971)
+C ROUGE-L Average_P: 0.31035 (95%-conf.int. 0.29920 - 0.32178)
+C ROUGE-L Average_F: 0.28409 (95%-conf.int. 0.27418 - 0.29401)
+---------------------------------------------
+C ROUGE-W-1.2 Average_R: 0.17376 (95%-conf.int. 0.16702 - 0.18028)
+C ROUGE-W-1.2 Average_P: 0.28890 (95%-conf.int. 0.27845 - 0.29977)
+C ROUGE-W-1.2 Average_F: 0.20794 (95%-conf.int. 0.20027 - 0.21532)
+---------------------------------------------
+C ROUGE-SU4 Average_R: 0.15378 (95%-conf.int. 0.14488 - 0.16229)
+C ROUGE-SU4 Average_P: 0.17794 (95%-conf.int. 0.16859 - 0.18799)
+C ROUGE-SU4 Average_F: 0.15321 (95%-conf.int. 0.14490 - 0.16143)
+```
