@@ -85,7 +85,8 @@ class Model(nn.Module):
     def forward(self, x, px, pxs, mask_x, y, py, pys, mask_y_tri, y_tgt, mask_y):
         hs = self.encode(x, px, pxs, mask_x)
         pred = self.decode(y, py, pys, hs, mask_x, mask_y_tri)
-        loss = self.nll_loss(pred, y_tgt, mask_y)
-        return pred, loss, None
+        loss = self.nll_loss(pred, y_tgt, mask_y, self.avg_nll)
+        ppl = T.exp(loss)
+        return pred, ppl, None
     
 

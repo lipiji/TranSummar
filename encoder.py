@@ -24,7 +24,7 @@ class LocalEncoder(nn.Module):
     def forward(self, x, p, ps, mask_x):
         emb_x = self.w_emb(x)
         emb_p_w = self.p_emb_w(p)
-        emb_p_s = self.p_emb_s(ps) 
-        return self.encoder(self.dropout(emb_x + emb_p_w + emb_p_s), mask_x)  
+        #emb_p_s = self.p_emb_s(ps) 
+        return self.encoder(self.dropout(emb_x + emb_p_w ), mask_x)  
 
 

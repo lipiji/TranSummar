@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 import os
-cudaid = 7
+cudaid = 1
 os.environ["CUDA_VISIBLE_DEVICES"] = str(cudaid)
 
 import sys
@@ -21,6 +21,7 @@ from model import *
 from utils_pg import *
 from configs import *
 from transformer.utils import *
+from transformer.optim import Optim
 
 cfg = DeepmindConfigs()
 TRAINING_DATASET_CLS = DeepmindTraining
@@ -114,7 +115,7 @@ def init_modules():
     consts["lr"] = cfg.LR
     consts["beam_size"] = cfg.BEAM_SIZE
 
-    consts["max_epoch"] = 150 if options["is_debugging"] else 30 
+    consts["max_epoch"] = 1000 if options["is_debugging"] else 30 
     consts["print_time"] = 5
     consts["save_epoch"] = 1
 
@@ -476,13 +477,17 @@ def run(existing_model_name = None):
         model = Model(modules, consts, options)
         if options["cuda"]:
             model.cuda()
-        optimizer = torch.optim.Adagrad(model.parameters(), lr=consts["lr"], initial_accumulator_value=0.1)
+        #optimizer = torch.optim.Adagrad(model.parameters(), lr=consts["lr"], initial_accumulator_value=0.1)
+        optimizer = Optim(consts["hidden_size"], 1, 8000,\
+                          torch.optim.Adam(model.parameters(),\
+                          lr=consts["lr"], betas=(0.9, 0.998), eps=1e-9))
         
+
         model_name = "".join(["cnndm.s2s.", options["cell"]])
         existing_epoch = 0
         if need_load_model:
             if existing_model_name == None:
-                existing_model_name = "cnndm.s2s.transformer.gpu6.epoch22.1"
+                existing_model_name = "cnndm.s2s.transformer.gpu5.epoch10.3"
             print "loading existed model:", existing_model_name
             model, optimizer = load_model(cfg.cc.MODEL_PATH + existing_model_name, model, optimizer)
 

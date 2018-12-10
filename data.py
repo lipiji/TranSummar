@@ -72,7 +72,7 @@ class BatchData:
                     
                     self.x[idx_doc, idx_word] = w2i[w]
                     self.x_mask[idx_doc, 0, idx_word] = 1
-                    self.px[idx_doc, idx_word] = num_word
+                    self.px[idx_doc, idx_word] = idx_word + 1#num_word
                     self.pxs[idx_doc, idx_word] = send_id
 
             self.len_x.append(np.sum(self.x_mask[idx_doc, :, :]))
@@ -102,7 +102,7 @@ class BatchData:
                     self.y[idx_doc, idx_word] = w2i[w]
                     if (idx_word + 1) < len(summary):
                         self.y_inp[idx_doc, idx_word + 1] = w2i[w] # teacher forcing
-                    self.py[idx_doc, idx_word] = num_word # 1st:0 
+                    self.py[idx_doc, idx_word] = idx_word #num_word # 1st:0 
                     self.pys[idx_doc, idx_word] = send_id
 
                     if not options["is_predicting"]:

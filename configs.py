@@ -26,7 +26,7 @@ class DeepmindTraining(object):
 class DeepmindTesting(object):
     IS_UNICODE = False
     HAS_Y = True
-    BATCH_SIZE = 100
+    BATCH_SIZE = 80
     MIN_LEN_PREDICT = 35
     MAX_LEN_PREDICT = 120
     MAX_BYTE_PREDICT = None
@@ -43,20 +43,20 @@ class DeepmindConfigs():
     COVERAGE = False
     BI_RNN = True
     BEAM_SEARCH = True
-    BEAM_SIZE = 4
+    BEAM_SIZE = 5
     AVG_NLL = True
     NORM_CLIP = 2
     if not AVG_NLL:
         NORM_CLIP = 5
-    LR = 0.1 
+    LR = 2
 
-    DIM_X = 256
+    DIM_X = 512
     DIM_Y = DIM_X
-    HIDDEN_SIZE = 256
-    FF_SIZE = 512
+    HIDDEN_SIZE = 512
+    FF_SIZE = 1024
     NUM_H = 8 # multi-head attention
-    DROPOUT = 0.1
-    NUM_L = 6 # num of layers
+    DROPOUT = 0.2
+    NUM_L = 4 # num of layers
     MIN_LEN_X = 10
     MIN_LEN_Y = 10
     MAX_LEN_X = 400

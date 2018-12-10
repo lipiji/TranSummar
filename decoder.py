@@ -26,7 +26,7 @@ class LocalDecoder(nn.Module):
     def forward(self, x, p, ps, memory, mask_x, mask_y):
         emb_x = self.w_emb(x)
         emb_p_w = self.p_emb_w(p)
-        emb_p_s = self.p_emb_s(ps) 
-        h = self.decoder(self.dropout(emb_x + emb_p_w + emb_p_s), memory, mask_x, mask_y)  
+        #emb_p_s = self.p_emb_s(ps) 
+        h = self.decoder(self.dropout(emb_x + emb_p_w), memory, mask_x, mask_y)  
         pred = T.softmax(self.proj(h), dim=-1)
         return pred
