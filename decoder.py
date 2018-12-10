@@ -26,22 +26,23 @@ class LocalDecoder(nn.Module):
         self.decoder = Decoder(DecoderLayer(d_model, self_attn, src_attn, ff, dropout), N)
         self.proj = nn.Linear(d_model, vocab) 
 
-        self.Wc_att = nn.Parameter(torch.Tensor(d_model, d_model))
-        self.b_att = nn.Parameter(torch.Tensor(d_model))
-
-        self.W_comb_att = nn.Parameter(torch.Tensor(d_model, d_model))
-        self.U_att = nn.Parameter(torch.Tensor(1, d_model))
-        
         if self.copy:
+            self.Wc_att = nn.Parameter(torch.Tensor(d_model, d_model))
+            self.b_att = nn.Parameter(torch.Tensor(d_model))
+
+            self.W_comb_att = nn.Parameter(torch.Tensor(d_model, d_model))
+            self.U_att = nn.Parameter(torch.Tensor(1, d_model))
+        
             self.v = nn.Parameter(torch.Tensor(1, d_model*3))
             self.bv = nn.Parameter(torch.Tensor(1))
+            
             init_xavier_weight(self.v) 
             init_bias(self.bv)
 
-        init_xavier_weight(self.Wc_att)
-        init_bias(self.b_att)
-        init_xavier_weight(self.W_comb_att)
-        init_xavier_weight(self.U_att)
+            init_xavier_weight(self.Wc_att)
+            init_bias(self.b_att)
+            init_xavier_weight(self.W_comb_att)
+            init_xavier_weight(self.U_att)
 
     def copy_attn(self, memory, hs, xid, x_mask):
         
