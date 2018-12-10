@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 import os
-cudaid = 1
+cudaid = 5
 os.environ["CUDA_VISIBLE_DEVICES"] = str(cudaid)
 
 import sys
@@ -56,8 +56,8 @@ def init_modules():
 
     options = {}
 
-    options["is_debugging"] = False
-    options["is_predicting"] = True
+    options["is_debugging"] = True
+    options["is_predicting"] = False
     options["model_selection"] = False # When options["is_predicting"] = True, true means use validation set for tuning, false is real testing.
 
     options["cuda"] = cfg.CUDA and torch.cuda.is_available()
@@ -530,7 +530,10 @@ def run(existing_model_name = None):
                               torch.LongTensor(batch.pys).to(options["device"]),\
                               torch.FloatTensor(batch.y_mask_tri).to(options["device"]),\
                               torch.LongTensor(batch.y).to(options["device"]),\
-                              torch.FloatTensor(batch.y_mask).to(options["device"]))
+                              torch.FloatTensor(batch.y_mask).to(options["device"]),\
+                              torch.LongTensor(batch.x_ext).to(options["device"]),\
+                              torch.LongTensor(batch.y_ext).to(options["device"]),\
+                              batch.max_ext_len)
 
                     if cost_c is None:
                         loss = cost

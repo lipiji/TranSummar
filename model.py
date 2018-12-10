@@ -47,7 +47,7 @@ class Model(nn.Module):
         self.encoder = LocalEncoder(self.word_emb, self.pos_emb_w, self.pos_emb_s, \
                                     self.d_model, self.d_ff, self.num_heads,\
                                     self.dropout, self.num_layers)
-        self.decoder = LocalDecoder(self.word_emb, self.pos_emb_w, self.pos_emb_s, self.dict_size, \
+        self.decoder = LocalDecoder(self.device, self.word_emb, self.pos_emb_w, self.pos_emb_s, self.dict_size, \
                                     self.d_model, self.d_ff, self.num_heads,\
                                     self.dropout, self.num_layers)
 
@@ -79,14 +79,15 @@ class Model(nn.Module):
     def encode(self, x, p, ps, mask_x):
         return self.encoder(x, p, ps, mask_x)
 
-    def decode(self, x, p, ps, m, mask_x, mask_y):
-        return self.decoder(x, p, ps, m, mask_x, mask_y)
+    def decode(self, y, p, ps, m, mask_x, mask_y, x, max_ext_lent):
+        return self.decoder(y, p, ps, m, mask_x, mask_y, x, max_ext_lent)
     
-    def forward(self, x, px, pxs, mask_x, y, py, pys, mask_y_tri, y_tgt, mask_y):
+    def forward(self, x, px, pxs, mask_x, y, py, pys,\
+                mask_y_tri, y_tgt, mask_y, x_ext, y_ext, max_ext_lent):
         hs = self.encode(x, px, pxs, mask_x)
-        pred = self.decode(y, py, pys, hs, mask_x, mask_y_tri)
-        loss = self.nll_loss(pred, y_tgt, mask_y, self.avg_nll)
-        ppl = T.exp(loss)
+        pred = self.decode(y, py, pys, hs, mask_x, mask_y_tri, x_ext, max_ext_lent)
+        nll = self.nll_loss(pred, y_ext, mask_y, self.avg_nll)
+        ppl = T.exp(nll)
         return pred, ppl, None
     
 

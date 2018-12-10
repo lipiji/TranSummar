@@ -37,9 +37,9 @@ class DeepmindConfigs():
     
     cc = CommonConfigs("deepmind")
    
-    CELL = "transformer" # gru or lstm
+    CELL = "transformer"
     CUDA = True
-    COPY = False
+    COPY = True
     COVERAGE = False
     BI_RNN = True
     BEAM_SEARCH = True
