@@ -33,6 +33,44 @@ C ROUGE-SU4 Average_P: 0.09939 (95%-conf.int. 0.09709 - 0.10182)
 C ROUGE-SU4 Average_F: 0.08906 (95%-conf.int. 0.08716 - 0.09113)
 ```
 
+#### OpenNMT (no copy, no coverage), good...
+```
+---------------------------------------------
+C ROUGE-1 Average_R: 0.33596 (95%-conf.int. 0.33384 - 0.33812)
+C ROUGE-1 Average_P: 0.42363 (95%-conf.int. 0.42103 - 0.42636)
+C ROUGE-1 Average_F: 0.36314 (95%-conf.int. 0.36123 - 0.36515)
+---------------------------------------------
+C ROUGE-2 Average_R: 0.12626 (95%-conf.int. 0.12458 - 0.12800)
+C ROUGE-2 Average_P: 0.16142 (95%-conf.int. 0.15935 - 0.16360)
+C ROUGE-2 Average_F: 0.13715 (95%-conf.int. 0.13540 - 0.13902)
+---------------------------------------------
+C ROUGE-3 Average_R: 0.06299 (95%-conf.int. 0.06160 - 0.06443)
+C ROUGE-3 Average_P: 0.08174 (95%-conf.int. 0.07981 - 0.08352)
+C ROUGE-3 Average_F: 0.06878 (95%-conf.int. 0.06726 - 0.07028)
+---------------------------------------------
+C ROUGE-4 Average_R: 0.03680 (95%-conf.int. 0.03573 - 0.03797)
+C ROUGE-4 Average_P: 0.04861 (95%-conf.int. 0.04711 - 0.05017)
+C ROUGE-4 Average_F: 0.04042 (95%-conf.int. 0.03922 - 0.04164)
+---------------------------------------------
+C ROUGE-L Average_R: 0.30994 (95%-conf.int. 0.30802 - 0.31202)
+C ROUGE-L Average_P: 0.39101 (95%-conf.int. 0.38849 - 0.39371)
+C ROUGE-L Average_F: 0.33511 (95%-conf.int. 0.33327 - 0.33713)
+---------------------------------------------
+C ROUGE-W-1.2 Average_R: 0.13446 (95%-conf.int. 0.13350 - 0.13544)
+C ROUGE-W-1.2 Average_P: 0.28430 (95%-conf.int. 0.28240 - 0.28625)
+C ROUGE-W-1.2 Average_F: 0.17691 (95%-conf.int. 0.17587 - 0.17803)
+---------------------------------------------
+C ROUGE-SU4 Average_R: 0.13850 (95%-conf.int. 0.13693 - 0.14006)
+C ROUGE-SU4 Average_P: 0.17830 (95%-conf.int. 0.17631 - 0.18030)
+C ROUGE-SU4 Average_F: 0.15050 (95%-conf.int. 0.14891 - 0.15210)
+```
+
+#### OpenNMT+copy, good...
+```
+---------------------------------------------
+
+```
+
 #### v0.1 pure transformer (no copy, no coverage), agiga dataset:
 ```
 C ROUGE-1 Average_R: 0.31383 (95%-conf.int. 0.30249 - 0.32486)
