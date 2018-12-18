@@ -101,3 +101,6 @@ C ROUGE-SU4 Average_R: 0.16477 (95%-conf.int. 0.15576 - 0.17383)
 C ROUGE-SU4 Average_P: 0.18790 (95%-conf.int. 0.17794 - 0.19759)
 C ROUGE-SU4 Average_F: 0.16377 (95%-conf.int. 0.15497 - 0.17240)
 ```
+
+## Reference
+- "The Annotated Transformer":http://nlp.seas.harvard.edu/2018/04/03/attention.html
