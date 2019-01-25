@@ -154,7 +154,7 @@ def write_for_rouge(fname, ref_sents, dec_words, cfg):
             f.write(sent) if idx == len(ref_sents) - 1 else f.write(sent + "\n")
     with open(decoded_file, "w") as f:
         for idx, sent in enumerate(dec_sents):
-            sent = sent.strip()
+            sent = sent.replace("<s>", "").replace("</s>","").strip()
             f.write(sent) if idx == len(dec_sents) - 1 else f.write(sent + "\n")
 
 def write_summ(dst_path, summ_list, num_summ, options, i2w = None, oovs=None, score_list = None):

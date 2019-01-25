@@ -21,7 +21,7 @@ class DeepmindTraining(object):
     IS_UNICODE = False
     REMOVES_PUNCTION = False
     HAS_Y = True
-    BATCH_SIZE = 40
+    BATCH_SIZE = 32
 
 class DeepmindTesting(object):
     IS_UNICODE = False
@@ -39,7 +39,7 @@ class DeepmindConfigs():
    
     CELL = "transformer"
     CUDA = True
-    COPY = True
+    COPY = False
     COVERAGE = False
     BI_RNN = True
     BEAM_SEARCH = True

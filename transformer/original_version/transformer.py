@@ -340,7 +340,7 @@ for epoch in range(10):
     loss = run_epoch(data_gen(V, 30, 20), model, SimpleLossCompute(model.generator, criterion, model_opt))
     model.eval()
     loss_evl = run_epoch(data_gen(V, 30, 5), model, SimpleLossCompute(model.generator, criterion, None))
-    print epoch, loss, loss_evl
+    print (epoch, loss, loss_evl)
 
 
 def greedy_decode(model, src, src_mask, max_len, start_symbol):

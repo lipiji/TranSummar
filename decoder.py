@@ -10,13 +10,13 @@ from transformer.layers import MultiHeadedAttention, PositionwiseFeedForward, De
 from transformer.model import Decoder
 
 class LocalDecoder(nn.Module):
-    def __init__(self, device, w_emb, p_emb_w, p_emb_s, vocab, d_model=256, d_ff=1024, h=8, dropout=0.1, N=6):
+    def __init__(self, device, copy, w_emb, p_emb_w, p_emb_s, vocab, d_model=256, d_ff=1024, h=8, dropout=0.1, N=6):
         super(LocalDecoder, self).__init__()  
         self.w_emb = w_emb
         self.p_emb_w = p_emb_w
         self.p_emb_s = p_emb_s
         self.dropout = nn.Dropout(dropout)
-        self.copy = True
+        self.copy = copy
         self.device = device
 
         self_attn = MultiHeadedAttention(h, d_model)
@@ -47,7 +47,7 @@ class LocalDecoder(nn.Module):
     def copy_attn(self, memory, hs, xid, x_mask):
         
         memory = memory.transpose(0, 1)
-        x_mask = x_mask.squeeze().transpose(0, 1).unsqueeze(-1)
+        x_mask = x_mask.view(x_mask.size(0), x_mask.size(-1)).transpose(0, 1).unsqueeze(-1)
 
         def _get_word_atten(pctx, h1, x_mask):
             h = F.linear(h1, self.W_comb_att)
@@ -91,7 +91,7 @@ class LocalDecoder(nn.Module):
         #emb_p_s = self.p_emb_s(ps) 
         h = self.decoder(self.dropout(emb_x + emb_p_w), memory, mask_x, mask_y)  
         pred = T.softmax(self.proj(h), dim=-1)
-        
+
         if self.copy:
             atts, dists, xids = self.copy_attn(memory, h, xid, mask_x)   
             if max_ext_len > 0:
@@ -100,6 +100,4 @@ class LocalDecoder(nn.Module):
             g = T.sigmoid(F.linear(T.cat([self.dropout(emb_x + emb_p_w), h, atts], -1), self.v, self.bv))
             pred = (g * pred).scatter_add(2, xids, (1 - g) * dists)
         
-
-
         return pred

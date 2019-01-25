@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 import os
-cudaid = 5
+cudaid = 7
 os.environ["CUDA_VISIBLE_DEVICES"] = str(cudaid)
 
 import sys
@@ -56,8 +56,8 @@ def init_modules():
 
     options = {}
 
-    options["is_debugging"] = True
-    options["is_predicting"] = False
+    options["is_debugging"] = False
+    options["is_predicting"] = True
     options["model_selection"] = False # When options["is_predicting"] = True, true means use validation set for tuning, false is real testing.
 
     options["cuda"] = cfg.CUDA and torch.cuda.is_available()
@@ -226,8 +226,8 @@ def beam_decode(fname, batch, model, modules, consts, options):
     last_traces = [[]]
     last_scores = torch.FloatTensor(np.zeros(1)).to(options["device"])
     last_states = []
-
-    x, x_mask, memory, y, len_y, ref_sents = batch
+    
+    x, x_mask, memory, y, len_y, ref_sents, max_ext_len, oovs = batch
     
     ys = torch.LongTensor(np.zeros((num_live, 1), dtype="int64")).to(options["device"])
     x = x.unsqueeze(0)
@@ -239,11 +239,13 @@ def beam_decode(fname, batch, model, modules, consts, options):
     for step in xrange(consts["max_len_predict"]):
         tile_memory = memory.repeat(num_live, 1, 1)
         tile_x_mask = x_mask.repeat(num_live, 1, 1)
+        tile_x = x.repeat(num_live, 1) 
 
         y_mask_tri = Variable(subsequent_mask(ys.size(1)).type_as(x_mask)).to(options["device"])
 
-        y_pred = model.decode(ys, py, pys, tile_memory, tile_x_mask, y_mask_tri)
+        y_pred = model.decode(ys, py, py, tile_memory, tile_x_mask, y_mask_tri, tile_x, max_ext_len)
         
+   
         dict_size = y_pred.shape[-1]
         y_pred = y_pred[:,-1,:]
         y_pred = y_pred.view(num_live, dict_size)
@@ -418,13 +420,16 @@ def predict(model, modules, consts, options):
         if options["beam_decoding"]:
             for idx_s in xrange(len(test_idx)):
                 if options["copy"]:
-                    inputx = (torch.LongTensor(x_ext[:, idx_s]).to(options["device"]), word_emb[:, idx_s, :], dec_state[idx_s, :],\
-                          torch.FloatTensor(x_mask[:, idx_s, :]).to(options["device"]), y[:, idx_s], [len_y[idx_s]], oy[idx_s],\
-                          batch.max_ext_len, oovs[idx_s])
+                    inputx = (torch.LongTensor(batch.x_ext[idx_s, :]).to(options["device"]), \
+                              torch.FloatTensor(batch.x_mask[idx_s, :]).to(options["device"]),\
+                              memory[idx_s, :], batch.y[idx_s,:], [batch.len_y[idx_s]], batch.original_summarys[idx_s],
+                              batch.max_ext_len, batch.x_ext_words[idx_s])
+
                 else:
                     inputx = (torch.LongTensor(batch.x[idx_s, :]).to(options["device"]), \
                               torch.FloatTensor(batch.x_mask[idx_s, :]).to(options["device"]),\
-                              memory[idx_s, :], batch.y[idx_s,:], [batch.len_y[idx_s]], batch.original_summarys[idx_s])
+                              memory[idx_s, :], batch.y[idx_s,:], [batch.len_y[idx_s]], batch.original_summarys[idx_s],\
+                              batch.max_ext_len, batch.x_ext_words[idx_s])
 
                 beam_decode(si, inputx, model, modules, consts, options)
                 si += 1
@@ -487,7 +492,7 @@ def run(existing_model_name = None):
         existing_epoch = 0
         if need_load_model:
             if existing_model_name == None:
-                existing_model_name = "cnndm.s2s.transformer.gpu5.epoch10.3"
+                existing_model_name = "cnndm.s2s.transformer.gpu4.epoch9.3"
             print "loading existed model:", existing_model_name
             model, optimizer = load_model(cfg.cc.MODEL_PATH + existing_model_name, model, optimizer)
 

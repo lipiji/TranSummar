@@ -108,7 +108,7 @@ def abstract2sents(abstract, cfg):
       start_p = abstract.index(cfg.W_LS, cur)
       end_p = abstract.index(cfg.W_RS, start_p + 1)
       cur = end_p + len(cfg.W_RS)
-      sents.append(abstract[start_p+len(cfg.W_LS):end_p])
+      sents.append(abstract[start_p + len(cfg.W_LS):end_p])
     except ValueError as e: # no more sentences
       return sents
 
@@ -116,7 +116,9 @@ def read_head(f_head, cfg):
     lines = []
 
     sents = abstract2sents(f_head, cfg)
-    line = ' '.join(sents)
+    
+    line = f_head #' '.join(sents)
+    
     words = line.split()
     num_words = len(words)
     if num_words >= cfg.MIN_LEN_Y and num_words <= cfg.MAX_LEN_Y:
@@ -125,7 +127,7 @@ def read_head(f_head, cfg):
     elif num_words > cfg.MAX_LEN_Y: # do not know if should be stoped
         lines = words[0 : cfg.MAX_LEN_Y + 1] # one more word.
     
-    return (lines, sents) if len(lines) >= cfg.MIN_LEN_Y and len(lines) <= cfg.MAX_LEN_Y+1  else None
+    return (lines, sents) if len(lines) >= cfg.MIN_LEN_Y and len(lines) <= cfg.MAX_LEN_Y + 1  else None
 
 def prepare_deepmind(d_path):
     configs = DeepmindConfigs()
@@ -195,8 +197,8 @@ def prepare_deepmind(d_path):
     i2w = {}
     w2w = {}
 
-    for w in [configs.W_PAD, configs.W_UNK, configs.W_EOS]:
-    #for w in [configs.W_PAD, configs.W_UNK, configs.W_BOS, configs.W_EOS, configs.W_LS, configs.W_RS]:
+    #for w in [configs.W_PAD, configs.W_UNK, configs.W_EOS]:
+    for w in [configs.W_PAD, configs.W_UNK, configs.W_BOS, configs.W_EOS, configs.W_LS, configs.W_RS]:
         w2i[w] = len(dic)
         i2w[w2i[w]] = w
         dic[w] = 10000
