@@ -68,6 +68,33 @@ C ROUGE-SU4 Average_F: 0.15050 (95%-conf.int. 0.14891 - 0.15210)
 #### OpenNMT+copy, good...
 ```
 ---------------------------------------------
+C ROUGE-1 Average_R: 0.37869 (95%-conf.int. 0.37601 - 0.38135)
+C ROUGE-1 Average_P: 0.43329 (95%-conf.int. 0.43046 - 0.43621)
+C ROUGE-1 Average_F: 0.38871 (95%-conf.int. 0.38629 - 0.39111)
+---------------------------------------------
+C ROUGE-2 Average_R: 0.16598 (95%-conf.int. 0.16366 - 0.16852)
+C ROUGE-2 Average_P: 0.19104 (95%-conf.int. 0.18831 - 0.19371)
+C ROUGE-2 Average_F: 0.17076 (95%-conf.int. 0.16849 - 0.17315)
+---------------------------------------------
+C ROUGE-3 Average_R: 0.09452 (95%-conf.int. 0.09243 - 0.09658)
+C ROUGE-3 Average_P: 0.10934 (95%-conf.int. 0.10694 - 0.11171)
+C ROUGE-3 Average_F: 0.09733 (95%-conf.int. 0.09530 - 0.09943)
+---------------------------------------------
+C ROUGE-4 Average_R: 0.06235 (95%-conf.int. 0.06050 - 0.06415)
+C ROUGE-4 Average_P: 0.07260 (95%-conf.int. 0.07044 - 0.07473)
+C ROUGE-4 Average_F: 0.06427 (95%-conf.int. 0.06246 - 0.06608)
+---------------------------------------------
+C ROUGE-L Average_R: 0.35004 (95%-conf.int. 0.34744 - 0.35254)
+C ROUGE-L Average_P: 0.40119 (95%-conf.int. 0.39836 - 0.40396)
+C ROUGE-L Average_F: 0.35964 (95%-conf.int. 0.35721 - 0.36200)
+---------------------------------------------
+C ROUGE-W-1.2 Average_R: 0.15383 (95%-conf.int. 0.15259 - 0.15512)
+C ROUGE-W-1.2 Average_P: 0.29570 (95%-conf.int. 0.29352 - 0.29785)
+C ROUGE-W-1.2 Average_F: 0.19464 (95%-conf.int. 0.19329 - 0.19609)
+---------------------------------------------
+C ROUGE-SU4 Average_R: 0.16993 (95%-conf.int. 0.16787 - 0.17220)
+C ROUGE-SU4 Average_P: 0.19655 (95%-conf.int. 0.19421 - 0.19898)
+C ROUGE-SU4 Average_F: 0.17460 (95%-conf.int. 0.17251 - 0.17675)
 
 ```
 
