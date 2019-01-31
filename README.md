@@ -1,7 +1,7 @@
 # TranSummar
 Transformer for abstractive summarization
 
-#### v0.1, pure transformer (no copy, no coverage), God...
+#### v0.1, pure this transformer (no copy, no coverage), God...
 ```
 ---------------------------------------------
 C ROUGE-1 Average_R: 0.26888 (95%-conf.int. 0.26473 - 0.27306)
@@ -128,6 +128,39 @@ C ROUGE-SU4 Average_R: 0.16477 (95%-conf.int. 0.15576 - 0.17383)
 C ROUGE-SU4 Average_P: 0.18790 (95%-conf.int. 0.17794 - 0.19759)
 C ROUGE-SU4 Average_F: 0.16377 (95%-conf.int. 0.15497 - 0.17240)
 ```
+### #### v0.1, pure this transformer (encoder) + lstm (decoder) (copy + coverage), not good
+```
+---------------------------------------------
+C ROUGE-1 Average_R: 0.37299 (95%-conf.int. 0.36281 - 0.38320)
+C ROUGE-1 Average_P: 0.26669 (95%-conf.int. 0.25789 - 0.27576)
+C ROUGE-1 Average_F: 0.30237 (95%-conf.int. 0.29371 - 0.31116)
+---------------------------------------------
+C ROUGE-2 Average_R: 0.14569 (95%-conf.int. 0.13621 - 0.15576)
+C ROUGE-2 Average_P: 0.10509 (95%-conf.int. 0.09667 - 0.11416)
+C ROUGE-2 Average_F: 0.11845 (95%-conf.int. 0.10970 - 0.12769)
+---------------------------------------------
+C ROUGE-3 Average_R: 0.08407 (95%-conf.int. 0.07526 - 0.09411)
+C ROUGE-3 Average_P: 0.06159 (95%-conf.int. 0.05404 - 0.07028)
+C ROUGE-3 Average_F: 0.06885 (95%-conf.int. 0.06081 - 0.07773)
+---------------------------------------------
+C ROUGE-4 Average_R: 0.05831 (95%-conf.int. 0.04988 - 0.06750)
+C ROUGE-4 Average_P: 0.04366 (95%-conf.int. 0.03659 - 0.05174)
+C ROUGE-4 Average_F: 0.04831 (95%-conf.int. 0.04109 - 0.05660)
+---------------------------------------------
+C ROUGE-L Average_R: 0.33611 (95%-conf.int. 0.32659 - 0.34585)
+C ROUGE-L Average_P: 0.23999 (95%-conf.int. 0.23171 - 0.24827)
+C ROUGE-L Average_F: 0.27224 (95%-conf.int. 0.26392 - 0.28034)
+---------------------------------------------
+C ROUGE-W-1.2 Average_R: 0.16067 (95%-conf.int. 0.15565 - 0.16562)
+C ROUGE-W-1.2 Average_P: 0.18884 (95%-conf.int. 0.18225 - 0.19574)
+C ROUGE-W-1.2 Average_F: 0.16773 (95%-conf.int. 0.16268 - 0.17294)
+---------------------------------------------
+C ROUGE-SU4 Average_R: 0.15945 (95%-conf.int. 0.15043 - 0.16873)
+C ROUGE-SU4 Average_P: 0.11288 (95%-conf.int. 0.10511 - 0.12124)
+C ROUGE-SU4 Average_F: 0.12789 (95%-conf.int. 0.11990 - 0.13640)
+```
+
+
 
 ## Reference
 - "The Annotated Transformer":http://nlp.seas.harvard.edu/2018/04/03/attention.html
