@@ -1,5 +1,5 @@
 #!/bin/bash
-FILES=./deepmind/model/*
+FILES=./cnndm/model/*
 for f in $FILES; do
     echo "==========================" ${f##*/}
     python -u main.py ${f##*/}

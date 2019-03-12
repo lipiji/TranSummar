@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-from utils import *
 
 class Optim:
     "Optim wrapper that implements rate."

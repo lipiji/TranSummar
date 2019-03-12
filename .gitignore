@@ -2,4 +2,4 @@
 *.log
 /data*/*
 /model*/*
-/deepmind/*
+/cnndm/*

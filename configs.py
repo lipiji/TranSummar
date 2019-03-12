@@ -35,20 +35,26 @@ class DeepmindTesting(object):
 
 class DeepmindConfigs():
     
-    cc = CommonConfigs("deepmind")
-   
+    cc = CommonConfigs("cnndm")
+    FIRE = False
+
     CELL = "transformer"
     CUDA = True
-    COPY = False
-    COVERAGE = False
-    BI_RNN = True
-    BEAM_SEARCH = True
-    BEAM_SIZE = 5
+    COPY = True
+    COVERAGE = True
+    
+    BI_RNN = False
     AVG_NLL = True
     NORM_CLIP = 2
     if not AVG_NLL:
         NORM_CLIP = 5
-    LR = 2
+    LR = 0.15
+    SMOOTHING = 0.1
+
+    BEAM_SEARCH = True
+    BEAM_SIZE = 4
+    ALPHA = 0.9 # length penalty
+    BETA = 5 # coverage during beamsearch
 
     DIM_X = 512
     DIM_Y = DIM_X

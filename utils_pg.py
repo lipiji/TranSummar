@@ -2,7 +2,7 @@
 #pylint: skip-file
 import numpy as np
 from numpy.random import random as rand
-import cPickle as pickle
+import pickle
 import sys
 import os
 import shutil
@@ -93,17 +93,17 @@ def sort_samples(x, len_x, mask_x, y, len_y, \
            sorted_x_ext, sorted_y_ext, sorted_oovs
 
 def print_sent_dec(y_pred, y, y_mask, oovs, modules, consts, options, batch_size):
-    print "golden truth and prediction samples:"
-    max_y_words = np.sum(y_mask, axis = -1)
+    print("golden truth and prediction samples:")
+    max_y_words = np.sum(y_mask, axis = 0)
     max_y_words = max_y_words.reshape((batch_size))
     max_num_docs = 16 if batch_size > 16 else batch_size
     is_unicode = options["is_unicode"]
     dict_size = len(modules["i2w"])
     for idx_doc in range(max_num_docs):
-        print idx_doc + 1, "----------------------------------------------------------------------------------------------------"
+        print(idx_doc + 1, "----------------------------------------------------------------------------------------------------")
         sent_true= ""
         for idx_word in range(max_y_words[idx_doc]):
-            i = y[idx_doc, idx_word] if options["has_learnable_w2v"] else np.argmax(y[idx_doc, idx_word]) 
+            i = y[idx_word, idx_doc] if options["has_learnable_w2v"] else np.argmax(y[idx_word, idx_doc]) 
             if i in modules["i2w"]:
                 sent_true += modules["i2w"][i]
             else:
@@ -112,14 +112,15 @@ def print_sent_dec(y_pred, y, y_mask, oovs, modules, consts, options, batch_size
                 sent_true += " "
 
         if is_unicode:
-            print sent_true.encode("utf-8")
+            print(sent_true.encode("utf-8"))
         else:
-            print sent_true
+            print(sent_true)
 
-        print
+        print()
+
         sent_pred = ""
         for idx_word in range(max_y_words[idx_doc]):
-            i = torch.argmax(y_pred[idx_doc, idx_word, :]).item()
+            i = torch.argmax(y_pred[idx_word, idx_doc, :]).item()
             if i in modules["i2w"]:
                 sent_pred += modules["i2w"][i]
             else:
@@ -127,11 +128,11 @@ def print_sent_dec(y_pred, y, y_mask, oovs, modules, consts, options, batch_size
             if not is_unicode:
                 sent_pred += " "
         if is_unicode:
-            print sent_pred.encode("utf-8")
+            print(sent_pred.encode("utf-8"))
         else:
-            print sent_pred
-    print "----------------------------------------------------------------------------------------------------"
-    print 
+            print(sent_pred)
+    print("----------------------------------------------------------------------------------------------------")
+    print()
 
 
 def write_for_rouge(fname, ref_sents, dec_words, cfg):
@@ -154,7 +155,7 @@ def write_for_rouge(fname, ref_sents, dec_words, cfg):
             f.write(sent) if idx == len(ref_sents) - 1 else f.write(sent + "\n")
     with open(decoded_file, "w") as f:
         for idx, sent in enumerate(dec_sents):
-            sent = sent.replace("<s>", "").replace("</s>","").strip()
+            sent = sent.strip()
             f.write(sent) if idx == len(dec_sents) - 1 else f.write(sent + "\n")
 
 def write_summ(dst_path, summ_list, num_summ, options, i2w = None, oovs=None, score_list = None):
@@ -191,7 +192,7 @@ def write_summ(dst_path, summ_list, num_summ, options, i2w = None, oovs=None, sc
             if score_list != None:
                 assert num_summ == len(score_list)
 
-            for i in xrange(num_summ):
+            for i in range(num_summ):
                 if score_list != None:
                     f_summ.write(str(score_list[i]))
                     f_summ.write("\t")
