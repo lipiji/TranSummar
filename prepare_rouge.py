@@ -50,7 +50,6 @@ for file_id, fsumm in i2summ.items():
             + "\n<P ID=\"C\">" + fsumm + "</P>" \
             + "\n</PEERS>" \
             + "\n<MODELS>"
-
     rouge_s += "\n<M ID=\"" + file_id + "\">" + i2model[file_id] + "</M>"
     rouge_s += "\n</MODELS>\n</EVAL>"
                     
