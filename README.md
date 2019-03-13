@@ -33,3 +33,10 @@ C ROUGE-SU4 Average_P: 0.18101 (95%-conf.int. 0.17890 - 0.18320)
 C ROUGE-SU4 Average_F: 0.17496 (95%-conf.int. 0.17308 - 0.17693)
 ```
 #### gigawords:
+```
+```
+
+## reference:
+- fairseq: https://github.com/pytorch/fairseq
+- The Annotated Transformer: http://nlp.seas.harvard.edu/2018/04/03/attention.html
+
