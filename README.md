@@ -35,33 +35,33 @@ C ROUGE-SU4 Average_F: 0.17496 (95%-conf.int. 0.17308 - 0.17693)
 #### gigawords (no copy and no coverage):
 ```
 ---------------------------------------------
-C ROUGE-1 Average_R: 0.35286 (95%-conf.int. 0.34113 - 0.36530)
-C ROUGE-1 Average_P: 0.36363 (95%-conf.int. 0.35221 - 0.37605)
-C ROUGE-1 Average_F: 0.34808 (95%-conf.int. 0.33718 - 0.35972)
+C ROUGE-1 Average_R: 0.36144 (95%-conf.int. 0.34958 - 0.37330)
+C ROUGE-1 Average_P: 0.37213 (95%-conf.int. 0.36018 - 0.38460)
+C ROUGE-1 Average_F: 0.35586 (95%-conf.int. 0.34433 - 0.36747)
 ---------------------------------------------
-C ROUGE-2 Average_R: 0.16992 (95%-conf.int. 0.16028 - 0.18019)
-C ROUGE-2 Average_P: 0.17744 (95%-conf.int. 0.16762 - 0.18833)
-C ROUGE-2 Average_F: 0.16834 (95%-conf.int. 0.15878 - 0.17857)
+C ROUGE-2 Average_R: 0.17568 (95%-conf.int. 0.16614 - 0.18606)
+C ROUGE-2 Average_P: 0.18536 (95%-conf.int. 0.17463 - 0.19625)
+C ROUGE-2 Average_F: 0.17467 (95%-conf.int. 0.16489 - 0.18467)
 ---------------------------------------------
-C ROUGE-3 Average_R: 0.09292 (95%-conf.int. 0.08443 - 0.10171)
-C ROUGE-3 Average_P: 0.09915 (95%-conf.int. 0.09036 - 0.10883)
-C ROUGE-3 Average_F: 0.09262 (95%-conf.int. 0.08439 - 0.10156)
+C ROUGE-3 Average_R: 0.09628 (95%-conf.int. 0.08782 - 0.10555)
+C ROUGE-3 Average_P: 0.10448 (95%-conf.int. 0.09482 - 0.11429)
+C ROUGE-3 Average_F: 0.09643 (95%-conf.int. 0.08763 - 0.10558)
 ---------------------------------------------
-C ROUGE-4 Average_R: 0.05488 (95%-conf.int. 0.04766 - 0.06264)
-C ROUGE-4 Average_P: 0.05992 (95%-conf.int. 0.05215 - 0.06839)
-C ROUGE-4 Average_F: 0.05496 (95%-conf.int. 0.04785 - 0.06286)
+C ROUGE-4 Average_R: 0.05583 (95%-conf.int. 0.04812 - 0.06380)
+C ROUGE-4 Average_P: 0.06323 (95%-conf.int. 0.05447 - 0.07197)
+C ROUGE-4 Average_F: 0.05653 (95%-conf.int. 0.04871 - 0.06425)
 ---------------------------------------------
-C ROUGE-L Average_R: 0.32813 (95%-conf.int. 0.31653 - 0.33950)
-C ROUGE-L Average_P: 0.33836 (95%-conf.int. 0.32730 - 0.35026)
-C ROUGE-L Average_F: 0.32386 (95%-conf.int. 0.31278 - 0.33487)
+C ROUGE-L Average_R: 0.33497 (95%-conf.int. 0.32382 - 0.34678)
+C ROUGE-L Average_P: 0.34521 (95%-conf.int. 0.33414 - 0.35770)
+C ROUGE-L Average_F: 0.33005 (95%-conf.int. 0.31905 - 0.34173)
 ---------------------------------------------
-C ROUGE-W-1.2 Average_R: 0.20396 (95%-conf.int. 0.19636 - 0.21133)
-C ROUGE-W-1.2 Average_P: 0.31544 (95%-conf.int. 0.30443 - 0.32688)
-C ROUGE-W-1.2 Average_F: 0.23910 (95%-conf.int. 0.23056 - 0.24780)
+C ROUGE-W-1.2 Average_R: 0.20852 (95%-conf.int. 0.20134 - 0.21619)
+C ROUGE-W-1.2 Average_P: 0.32259 (95%-conf.int. 0.31225 - 0.33452)
+C ROUGE-W-1.2 Average_F: 0.24404 (95%-conf.int. 0.23594 - 0.25286)
 ---------------------------------------------
-C ROUGE-SU4 Average_R: 0.19910 (95%-conf.int. 0.18904 - 0.20908)
-C ROUGE-SU4 Average_P: 0.20744 (95%-conf.int. 0.19768 - 0.21800)
-C ROUGE-SU4 Average_F: 0.19165 (95%-conf.int. 0.18253 - 0.20110)
+C ROUGE-SU4 Average_R: 0.20404 (95%-conf.int. 0.19456 - 0.21456)
+C ROUGE-SU4 Average_P: 0.21410 (95%-conf.int. 0.20406 - 0.22493)
+C ROUGE-SU4 Average_F: 0.19664 (95%-conf.int. 0.18736 - 0.20654)
 ```
 
 ### How to run:
