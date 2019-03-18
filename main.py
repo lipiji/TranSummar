@@ -217,9 +217,9 @@ def beam_decode(fname, batch, model, modules, consts, options):
             else:
                 last_traces.append(traces_now[i])
                 last_scores.append(scores_now[i])
-                last_states.append(states_now[i])  
             
                 if options["coverage"]:
+                    last_states.append(states_now[i])  
                     attns = torch.stack(states_now[i])
                     m, n = attns.shape
                     cp = torch.sum(attns, dim=0)
