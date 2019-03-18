@@ -56,7 +56,7 @@ def init_modules():
     options = {}
 
     options["is_debugging"] = False
-    options["is_predicting"] = True
+    options["is_predicting"] = False
     options["model_selection"] = False # When options["is_predicting"] = True, true means use validation set for tuning, false is real testing.
 
     options["cuda"] = cfg.CUDA and torch.cuda.is_available()
@@ -161,7 +161,8 @@ def beam_decode(fname, batch, model, modules, consts, options):
     x = x.unsqueeze(1)
     word_emb = word_emb.unsqueeze(1)
     padding_mask = padding_mask.unsqueeze(1)
-    x_mask = x_mask.unsqueeze(1)
+    if options["copy"]:
+        x_mask = x_mask.unsqueeze(1)
 
     for step in range(consts["max_len_predict"]):
         tile_word_emb = word_emb.repeat(1, num_live, 1)
@@ -177,8 +178,8 @@ def beam_decode(fname, batch, model, modules, consts, options):
         
         dict_size = y_pred.shape[-1]
         y_pred = y_pred[-1, :, :] 
-        attn_dist = attn_dist[-1, :, :]
-
+        if options["coverage"]:
+            attn_dist = attn_dist[-1, :, :]
 
         cand_y_scores = last_scores + torch.log(y_pred) # larger is better
         if options["coverage"]:
@@ -198,8 +199,8 @@ def beam_decode(fname, batch, model, modules, consts, options):
         for i, [j, k] in enumerate(zip(idx_last_traces, idx_word_now)):
             traces_now.append(last_traces[j] + [k])
             scores_now[i] = copy.copy(top_joint_scores[i])
-            states_now.append(last_states[j] + [copy.copy(attn_dist[j, :])])
-            
+            if options["coverage"]:
+                states_now.append(last_states[j] + [copy.copy(attn_dist[j, :])])
             
         num_live = 0
         last_traces = []
@@ -229,8 +230,10 @@ def beam_decode(fname, batch, model, modules, consts, options):
                 num_live += 1
         if num_live == 0 or num_dead >= beam_size:
             break
+    
+        if options["coverage"]:
+            last_c_scores = torch.FloatTensor(np.array(last_c_scores).reshape((num_live, 1))).to(options["device"])
         
-        last_c_scores = torch.FloatTensor(np.array(last_c_scores).reshape((num_live, 1))).to(options["device"])
         last_scores = torch.FloatTensor(np.array(last_scores).reshape((num_live, 1))).to(options["device"])
         next_y = []
         for e in last_traces:
@@ -392,7 +395,6 @@ def predict(model, modules, consts, options):
 def run(existing_model_name = None):
     modules, consts, options = init_modules()
 
-    #use_gpu(consts["idx_gpu"])
     if options["is_predicting"]:
         need_load_model = True
         training_model = False
@@ -437,11 +439,6 @@ def run(existing_model_name = None):
             last_total_error = float("inf")
             print ("max epoch:", consts["max_epoch"])
             for epoch in range(0, consts["max_epoch"]):
-                #if epoch == 7:
-                #    consts["lr"] *= 0.1
-                #    for param_group in optimizer.param_groups:
-                #        param_group['lr'] = consts["lr"]
-
                 print ("epoch: ", epoch + existing_epoch)
                 num_partial = 1
                 total_error = 0.0
