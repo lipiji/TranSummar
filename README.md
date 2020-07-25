@@ -76,4 +76,5 @@ C ROUGE-SU4 Average_F: 0.19664 (95%-conf.int. 0.18736 - 0.20654)
 ### Reference:
 - fairseq: https://github.com/pytorch/fairseq
 - The Annotated Transformer: http://nlp.seas.harvard.edu/2018/04/03/attention.html
+- bert：https://github.com/jcyk/BERT
 
