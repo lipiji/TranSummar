@@ -188,7 +188,7 @@ def beam_decode(fname, batch, model, modules, consts, options):
             cand_scores = cand_y_scores.flatten()
         idx_top_joint_scores = torch.topk(cand_scores, beam_size - num_dead)[1]
 
-        idx_last_traces = idx_top_joint_scores / dict_size
+        idx_last_traces = idx_top_joint_scores // dict_size
         idx_word_now = idx_top_joint_scores % dict_size
         top_joint_scores = cand_y_scores.flatten()[idx_top_joint_scores]
 
